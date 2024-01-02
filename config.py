@@ -1,6 +1,6 @@
 import os
 
-PATH = "D:\\german\\Python\\PycharmProjects\\pump_searcher\\"
+PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(PATH, "data")
 
 # Data paths
