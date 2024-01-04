@@ -1,5 +1,10 @@
 import pandas as pd
 import numpy as np
+import json
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+import config
 
 
 def get_time_slide_window(interval, exchange, limit=500):
@@ -63,7 +68,8 @@ def drop_highly_corr_features(df, rate=0.95):
     corr_matrix = df.corr().abs()
 
     # Select upper triangle of correlation matrix
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    upper = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
 
     # Find features with correlation greater than rate
     to_drop = [column for column in upper.columns if any(upper[column] > rate)]
@@ -75,20 +81,39 @@ def drop_highly_corr_features(df, rate=0.95):
 
     return df
 
+
 def expect_f1(y_prob, thres):
+    
+    idxs = np.where(y_prob >= thres)[0]
+    tp = y_prob[idxs].sum()
+    fp = len(idxs) - tp
+    idxs = np.where(y_prob < thres)[0]
+    fn = y_prob[idxs].sum()
 
- idxs = np.where(y_prob >= thres)[0]
- tp = y_prob[idxs].sum()
- fp = len(idxs) - tp
- idxs = np.where(y_prob < thres)[0]
- fn = y_prob[idxs].sum()
+    return 2*tp / (2*tp + fp + fn)
 
- return 2*tp / (2*tp + fp + fn)
 
 def optimal_threshold(y_prob):
 
- y_prob = np.sort(y_prob)[::-1]
- fls = [expect_f1(y_prob, p) for p in y_prob]
- thres = y_prob[np.argmax(fls)]
+    y_prob = np.sort(y_prob)[::-1]
+    fls = [expect_f1(y_prob, p) for p in y_prob]
+    thres = y_prob[np.argmax(fls)]
 
- return thres, fls
+    return thres, fls
+
+def get_secrets(key_: str) -> str:
+    """Function to get secrets to code
+
+    Args:
+        key_ (str): key to get secrets
+
+    Returns:
+        str: value of secrets
+    """
+    with open(config.SECRETS_PATH, mode='r') as f:
+        SECRETS = json.loads(f.read())
+        return SECRETS[key_]
+    
+
+if __name__ == '__main__':
+    print(get_secrets('TELEGRAM_BOT_TOKEN'))

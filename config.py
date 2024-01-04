@@ -6,3 +6,4 @@ DATA_PATH = os.path.join(PATH, "data")
 # Data paths
 MODELS_PATH = os.path.join(DATA_PATH, "models")
 PRICES_PATH = os.path.join(DATA_PATH, "prices")
+SECRETS_PATH = os.path.join(PATH, "secrets.json")
