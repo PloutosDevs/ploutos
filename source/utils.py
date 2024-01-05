@@ -1,3 +1,9 @@
+import matplotlib
+matplotlib.use('Agg')
+
+
+import matplotlib.pyplot as plt
+from io import BytesIO
 import pandas as pd
 import numpy as np
 import json
@@ -113,6 +119,54 @@ def get_secrets(key_: str) -> str:
     with open(config.SECRETS_PATH, mode='r') as f:
         SECRETS = json.loads(f.read())
         return SECRETS[key_]
+    
+
+
+def create_plot_best_symbols(eval_candels_df, best_symbols, show=False):
+
+    # Create a figure with 2 rows and 5 columns for subplots
+    n_rows = np.ceil(best_symbols.shape[0] / 5).astype(int)
+    fig, axes = plt.subplots(nrows=n_rows, ncols=5, figsize=(20, n_rows * 4))
+
+    # Flatten the 2D array of axes to easily iterate through them
+    axes = axes.flatten()
+
+    for i, symb in enumerate(best_symbols.Symbol.values[:4]):
+        symb_candels = eval_candels_df[eval_candels_df.Symbol == symb]
+        symb_proba = int(best_symbols[best_symbols.Symbol == symb].proba.values[0] * 100) / 100
+        
+        min_price = symb_candels.loc[symb_candels.index.min(), 'Close']
+        max_price = symb_candels.loc[symb_candels.index.max(), 'Close']
+        yield_before = int((max_price / min_price - 1) * 100)
+        
+        # Get the respective axis for the current subplot
+        ax = axes[i]
+        
+        symb_candels.Close.plot(ax=ax)
+        ax.set_title(f'{symb} Prices | proba {symb_proba} | yield before {yield_before}%', size=10, color='black', fontweight="bold")
+        ax.set_xlabel(None)
+        ax.set_ylabel('Price (USD)')
+        ax.grid(True)
+        ax.axhline(y=min_price, color='red')
+        ax.axhline(y=max_price, color='green')
+        ax.tick_params(axis='x', rotation=45)
+        plt.tight_layout()
+
+    # Hide any empty subplots if there are fewer than 10 symbols
+    for i in range(len(best_symbols.Symbol.values), n_rows * 5):
+        axes[i].axis('off')
+
+    # Display the entire figure containing all subplots
+    if show:
+        plt.show()
+    else:
+        # Save the plot as a PNG image
+        img_buffer = BytesIO()
+        plt.savefig(img_buffer, format='png')
+        img_buffer.seek(0)
+        plt.close()
+        return img_buffer
+
     
 
 if __name__ == '__main__':

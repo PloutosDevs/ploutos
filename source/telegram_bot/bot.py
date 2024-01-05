@@ -17,7 +17,8 @@ import matplotlib
 matplotlib.use('Agg')
 
 from source import utils
-from source.prices_source.binance_prices import get_candles_spot_binance
+from source.data.get.binance_prices import get_candles_spot_binance
+from source.model.eval import eval_model
 
 
 # Enable logging
@@ -29,25 +30,25 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-def create_scatter_plot():
-    df = get_candles_spot_binance('BTCUSDT', "1d", "2023-10-01T10:00:00")
-    df = df['Close'][-30:]
-    df.index = df.index.astype(str).str[:10]
-    df.plot()
-    plt.title('Bitcoin Prices (Last 30 Days)')
-    plt.xlabel('Date')
-    plt.ylabel('Price (USD)')
-    # plt.grid(True)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
+# def create_scatter_plot():
+#     df = get_candles_spot_binance('BTCUSDT', "1d", "2023-10-01T10:00:00")
+#     df = df['Close'][-30:]
+#     df.index = df.index.astype(str).str[:10]
+#     df.plot()
+#     plt.title('Bitcoin Prices (Last 30 Days)')
+#     plt.xlabel('Date')
+#     plt.ylabel('Price (USD)')
+#     # plt.grid(True)
+#     plt.xticks(rotation=45)
+#     plt.tight_layout()
 
-    # Save the plot as a PNG image
-    img_buffer = BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    plt.close()
+#     # Save the plot as a PNG image
+#     img_buffer = BytesIO()
+#     plt.savefig(img_buffer, format='png')
+#     img_buffer.seek(0)
+#     plt.close()
 
-    return img_buffer
+#     return img_buffer
 
 # Define a base command handlers
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -65,7 +66,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def send_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send last 30 d BITCOIN prices plot"""
     chat_id = update.message.chat_id
-    document = create_scatter_plot()
+    document, symbols = eval_model()
+    await context.bot.send_message(chat_id, text=f"Beep! New signals is going")
+    await context.bot.send_message(chat_id, text='\n'.join(symbols))
     await context.bot.sendPhoto(chat_id, document)
 
 
@@ -93,8 +96,9 @@ async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
 async def send_document_daily(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send last 30 d BITCOIN prices plot"""
     job = context.job
-    document = create_scatter_plot()
+    document, symbols = eval_model()
     await context.bot.send_message(job.chat_id, text=f"Beep! New signals is going")
+    await context.bot.send_message(job.chat_id, text='\n'.join(symbols))
     await context.bot.sendPhoto(job.chat_id, document)
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:

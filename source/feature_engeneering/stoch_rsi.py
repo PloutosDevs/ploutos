@@ -1,4 +1,4 @@
-from source.features.rsi import calculate_rsi
+from source.feature_engeneering.rsi import calculate_rsi
 
 
 def calculate_stoch_rsi(prices_df, rsi_period=14, k_period=14, smooth_k=3, smooth_d=3, ema=False):
