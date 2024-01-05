@@ -1,12 +1,27 @@
 import pandas as pd
 import requests
 import numpy as np
+from time import sleep
+from tqdm import tqdm
 
 from source.utils import get_time_slide_window
 
 
+def get_binance_symbols(only_usdt=True) -> np.array:
+    """Get names of all binance symbols"""
+    exchange_info = requests.get("https://api.binance.com/api/v3/exchangeInfo").json()
+    
+    all_symbols = pd.DataFrame(exchange_info['symbols'])
+    
+    if only_usdt:
+        symbols_with_usdt = all_symbols[all_symbols['symbol'].str.contains("USDT")]['symbol'].unique()
+        return symbols_with_usdt
+    else:
+        return all_symbols['symbol'].unique()
+
+
 def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_time=None,
-                             time_zone="Europe/Moscow", limit=500):
+                             time_zone="Europe/Moscow", limit=500) -> pd.DataFrame:
     """
     Return candles of spot pairs from Binance exchange according to params.
 
@@ -65,7 +80,7 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
                 lambda x: pd.Timestamp.fromtimestamp(x / 1000, tz="UTC").tz_convert(tz=time_zone)
             )
 
-            base_candles = pd.concat([base_candles, candles])
+            base_candles = pd.concat([base_candles if not base_candles.empty else None, candles])
 
         if start_time >= end_time:
             break
@@ -73,3 +88,22 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
     base_candles = base_candles.drop_duplicates("Time").set_index("Time").astype(float)
 
     return base_candles
+
+
+
+def compose_binance_candles_df(symbols:list, start_time:str, end_time:str = None):
+    results_df = pd.DataFrame(columns=["Time", "Open", "High", "Low", "Close", "Volume", "Symbol"]).set_index("Time")
+    
+    for symbol in tqdm(symbols):
+        try:
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            if not df.empty:
+                df.loc[:, "Symbol"] = symbol
+                results_df = pd.concat([results_df if not results_df.empty else None, df])
+        except ConnectionError:
+            sleep(10)
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            if not df.empty:
+                df.loc[:, "Symbol"] = symbol
+                results_df = pd.concat([results_df if not results_df.empty else None, df])
+    return results_df
