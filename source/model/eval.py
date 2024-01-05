@@ -12,8 +12,8 @@ def eval_model():
 
     # Get data
     print('Start to get candels')
-    # BINANCE_SYMBOLS = get_binance_symbols(only_usdt=True)
-    BINANCE_SYMBOLS = ['LOOMUSDT', 'HIFIUSDT', 'VICUSDT', 'RPLUSDT', 'ATAUSDT']
+    BINANCE_SYMBOLS = get_binance_symbols(only_usdt=True)
+    # BINANCE_SYMBOLS = ['LOOMUSDT', 'HIFIUSDT', 'VICUSDT', 'RPLUSDT', 'ATAUSDT']
     DAYS_BEFORE = 30
     DATE_BEFORE_TODAY = (date.today() - timedelta(days=DAYS_BEFORE)).strftime("%Y-%m-%d")
     eval_candels_df = compose_binance_candles_df(BINANCE_SYMBOLS, start_time=DATE_BEFORE_TODAY)
