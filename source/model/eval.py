@@ -53,8 +53,12 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
             "first_yield": 3
         }
     }
-    
-    
+
+    eval_candles_df = utils.filter_symbols_by_last_yield(eval_candles_df, yield_offset=yield_before_pump)
+
+    if eval_candles_df.empty:
+        return b"", []
+
     # Generate features
     print('Start to generate features')
     eval_features_df = add_features(eval_candles_df, exp_config=EXPERIMENT_CONFIG)
