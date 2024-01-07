@@ -3,12 +3,14 @@ import requests
 import numpy as np
 from time import sleep
 from tqdm import tqdm
+import config
 
 from source.utils import get_time_slide_window
 
 
 def get_binance_symbols(only_usdt=True) -> np.array:
     """Get names of all binance symbols"""
+
     exchange_info = requests.get("https://api.binance.com/api/v3/exchangeInfo").json()
     
     all_symbols = pd.DataFrame(exchange_info['symbols'])
@@ -28,8 +30,8 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
     params:
         symbol: Symbol of currency pair, for example "BTCUSDT"
         interval: Interval of candles. All values can be seen in utils.get_time_slide_window
-        start_time: Start datetime of candles in format "%Y-%d-%m %H-%M-%S.%f"
-        end_time: End datetime of candles in format "%Y-%d-%m %H-%M-%S.%f". Default is now
+        start_time: Start datetime of candles in format "%Y-%d-%m %H:%M:%S.%f"
+        end_time: End datetime of candles in format "%Y-%d-%m %H:%M:%S.%f". Default is now
         time_zone: Your timezone pytz.all_timezones
     return:
         Candles with OHLCV cols and pd.Timestamp index
@@ -90,20 +92,24 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
     return base_candles
 
 
+def compose_binance_candles_df(symbols: list, start_time: str, end_time: str = None):
 
-def compose_binance_candles_df(symbols:list, start_time:str, end_time:str = None):
     results_df = pd.DataFrame(columns=["Time", "Open", "High", "Low", "Close", "Volume", "Symbol"]).set_index("Time")
     
     for symbol in tqdm(symbols):
+
         try:
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
+                                          time_zone=config.DEFAULT_TZ)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])
         except ConnectionError:
             sleep(10)
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
+                                          time_zone=config.DEFAULT_TZ)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])
+
     return results_df

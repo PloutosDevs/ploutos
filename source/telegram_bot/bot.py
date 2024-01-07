@@ -3,6 +3,9 @@
 
 import os
 import sys
+
+import pandas as pd
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from telegram import Update
@@ -11,8 +14,7 @@ import logging
 import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
-from timezonefinder import TimezoneFinder
-from tzlocal import get_localzone
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -20,6 +22,7 @@ from source import utils
 from source.data.get.binance_prices import get_candles_spot_binance
 from source.model.eval import eval_model
 
+import config
 
 # Enable logging
 logging.basicConfig(
@@ -59,17 +62,43 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("""
-    Welcome to the Cleint Bot.\nFor this purchase the following commands are available:\n- /send - send command is to send the log file from the other side of computer""")
+    await update.message.reply_text(
+        "Welcome to the Cleint Bot.\n"
+        "For this purchase the following commands are available:\n"
+        "- /send - send command is to send the log file from the other side of computer"
+    )
 
 
 async def send_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send last 30 d BITCOIN prices plot"""
-    chat_id = update.message.chat_id
-    document, symbols = eval_model()
-    await context.bot.send_message(chat_id, text=f"Beep! New signals is going")
-    await context.bot.send_message(chat_id, text='\n'.join(symbols))
-    await context.bot.sendPhoto(chat_id, document)
+    """Send signals"""
+
+    if not context.args:
+        # Get last closed day
+        eval_date = pd.Timestamp.today(tz="UTC") - pd.Timedelta(days=1)
+    else:
+        # Get user arguments
+        eval_date = pd.to_datetime(str(context.args[0]), format="%Y-%m-%d", errors="coerce", utc=True)
+
+    if pd.isna(eval_date):
+        await update.effective_message.reply_text("Sorry, date needs to be in '%Y-%m-%d' format")
+        return
+
+    if eval_date > pd.Timestamp.today(tz="UTC").normalize():
+        await update.effective_message.reply_text("Date can't be longer today")
+        return
+
+    chat_id = update.effective_message.chat_id
+
+    await context.bot.send_message(chat_id, text=f"Wait signals for 1-2 minute")
+
+    document, symbols = eval_model(eval_date)
+
+    if symbols == []:
+        await context.bot.send_message(chat_id, text=f"There aren't signals for {eval_date.strftime('%Y-%m-%d')}")
+    else:
+        await context.bot.send_message(chat_id, text=f"Beep! New signals for {eval_date.strftime('%Y-%m-%d')} is going")
+        await context.bot.send_message(chat_id, text='\n'.join(symbols))
+        await context.bot.sendPhoto(chat_id, document)
 
 
 async def warn_not_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -87,19 +116,33 @@ async def welcome_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=chat_id, text="Hello! Welcome to the bot.\nTap /start command")
     
 ########### Daily schedule handlers
-    
+
+
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
     await context.bot.send_message(job.chat_id, text=f"Beep! {job.data} seconds are over!")
-    
+
+
 async def send_document_daily(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send last 30 d BITCOIN prices plot"""
+
     job = context.job
-    document, symbols = eval_model()
-    await context.bot.send_message(job.chat_id, text=f"Beep! New signals is going")
-    await context.bot.send_message(job.chat_id, text='\n'.join(symbols))
-    await context.bot.sendPhoto(job.chat_id, document)
+
+    # Get last closed day
+    eval_date = pd.Timestamp.today(tz="UTC") - pd.Timedelta(days=1)
+
+    document, symbols = eval_model(valuation_date=eval_date)
+
+    if symbols == []:
+        await context.bot.send_message(job.chat_id, text=f"There aren't signals for {eval_date.strftime('%Y-%m-%d')}")
+    else:
+        await context.bot.send_message(
+            job.chat_id, text=f"Beep! New signals for {eval_date.strftime('%Y-%m-%d')} is going"
+        )
+        await context.bot.send_message(job.chat_id, text='\n'.join(symbols))
+        await context.bot.sendPhoto(job.chat_id, document)
+
 
 def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Remove job with given name. Returns whether job was removed."""
@@ -109,6 +152,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     for job in current_jobs:
         job.schedule_removal()
     return True
+
 
 async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
@@ -130,7 +174,8 @@ async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         time = datetime.time(hours, minutes)
         
         job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_daily(send_document_daily, time=time, days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id, name=str(chat_id), data=time)
+        context.job_queue.run_daily(send_document_daily, time=time, days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id,
+                                    name=str(chat_id), data=time)
 
         text = f"Schedule successfully set on {time.strftime('%H:%M')} UTC!"
         if job_removed:
@@ -149,10 +194,12 @@ async def unset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
-
 def main() -> None:
     """Start the bot."""
-    BOT_TOKEN = utils.get_secrets('TELEGRAM_BOT_TOKEN')
+
+    token_key= 'TELEGRAM_BOT_TOKEN' if config.MODE == "PROD" else 'TELEGRAM_BOT_TOKEN_TEST'
+
+    BOT_TOKEN = utils.get_secrets(token_key)
 
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()

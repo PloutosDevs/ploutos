@@ -24,8 +24,8 @@ def get_candles_moex(ticker: str, interval: int, start_time: str, end_time=None,
             7 - 7 days,
             31 - 31 days,
             4 - 4 months
-        start_time: Start datetime of candles in format "%Y-%d-%m %H-%M-%S.%f"
-        end_time: End datetime of candles in format "%Y-%d-%m %H-%M-%S.%f". Default is now
+        start_time: Start datetime of candles in format "%Y-%d-%m %H:%M:%S.%f"
+        end_time: End datetime of candles in format "%Y-%d-%m %H:%M:%S.%f". Default is now
         time_zone: Your timezone pytz.all_timezones
         engine: Common used examples: "stock" for indexes and shares, "currency" for currencies
         market: Common used examples: "shares", "index" and "selt" (currencies)

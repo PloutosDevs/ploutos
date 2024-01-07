@@ -131,7 +131,7 @@ def create_plot_best_symbols(eval_candels_df, best_symbols, show=False):
     # Flatten the 2D array of axes to easily iterate through them
     axes = axes.flatten()
 
-    for i, symb in enumerate(best_symbols.Symbol.values[:4]):
+    for i, symb in enumerate(best_symbols.Symbol.values):
         symb_candels = eval_candels_df[eval_candels_df.Symbol == symb]
         symb_proba = int(best_symbols[best_symbols.Symbol == symb].proba.values[0] * 100) / 100
         
@@ -167,7 +167,24 @@ def create_plot_best_symbols(eval_candels_df, best_symbols, show=False):
         plt.close()
         return img_buffer
 
-    
+
+def filter_symbols_by_last_yield(data, yield_offset=0.03):
+
+    exclude_symbols = []
+
+    symbols = data["Symbol"].unique()
+
+    for symbol in symbols:
+
+        sample = data[data["Symbol"] == symbol]
+
+        if sample["Close"].pct_change().loc[sample.index[-1]] < yield_offset:
+            exclude_symbols.append(symbol)
+
+    data = data[~data["Symbol"].isin(exclude_symbols)]
+
+    return data
+
 
 if __name__ == '__main__':
     print(get_secrets('TELEGRAM_BOT_TOKEN'))
