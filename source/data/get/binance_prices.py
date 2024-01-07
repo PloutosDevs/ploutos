@@ -89,6 +89,8 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
 
     base_candles = base_candles.drop_duplicates("Time").set_index("Time").astype(float)
 
+    base_candles = base_candles.loc[:pd.Timestamp.fromtimestamp(end_time / 1000, tz="UTC").tz_convert(tz=time_zone)]
+
     return base_candles
 
 
