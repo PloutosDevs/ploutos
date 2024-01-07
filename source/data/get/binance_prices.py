@@ -3,6 +3,7 @@ import requests
 import numpy as np
 from time import sleep
 from tqdm import tqdm
+import config
 
 from source.utils import get_time_slide_window
 
@@ -98,13 +99,15 @@ def compose_binance_candles_df(symbols: list, start_time: str, end_time: str = N
     for symbol in tqdm(symbols):
 
         try:
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
+                                          time_zone=config.DEFAULT_TZ)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])
         except ConnectionError:
             sleep(10)
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time)
+            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
+                                          time_zone=config.DEFAULT_TZ)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])

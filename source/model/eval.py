@@ -1,22 +1,25 @@
 from source.data.get.binance_prices import get_binance_symbols, compose_binance_candles_df
-from datetime import date, timedelta
 from source.data.process.compose_features import add_features
 from joblib import load
 import os
 import config
 from source import utils
+import pandas as pd
 
 
-
-def eval_model():
+def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAULT_TZ).normalize(),
+               candles_period: int = 60, best_symbols_offset: int = 50, yield_before_pump: float = 0.03):
 
     # Get data
     print('Start to get candels')
     BINANCE_SYMBOLS = get_binance_symbols(only_usdt=True)
     # BINANCE_SYMBOLS = ['LOOMUSDT', 'HIFIUSDT', 'VICUSDT', 'RPLUSDT', 'ATAUSDT']
-    DAYS_BEFORE = 30
-    DATE_BEFORE_TODAY = (date.today() - timedelta(days=DAYS_BEFORE)).strftime("%Y-%m-%d")
-    eval_candels_df = compose_binance_candles_df(BINANCE_SYMBOLS, start_time=DATE_BEFORE_TODAY)
+
+    candles_start_date = (valuation_date - pd.Timedelta(days=candles_period)).strftime("%Y-%m-%d")
+    candles_end_date = valuation_date.strftime("%Y-%m-%d") + " 23:59:59.999999"
+
+    eval_candles_df = compose_binance_candles_df(BINANCE_SYMBOLS, start_time=candles_start_date,
+                                                 end_time=candles_end_date)
     
     EXPERIMENT_CONFIG = {
         'features': {
@@ -75,7 +78,7 @@ def eval_model():
     best_symbols = (
         eval_features_df_today.loc[eval_features_df_today.predict == 1, ['Symbol', 'predict', 'proba']]
                               .sort_values('proba', ascending=False)
-                              .head(N_BEST_SYMBOLS)
+                              .head(best_symbols_offset)
     )
     
     # Make plots
