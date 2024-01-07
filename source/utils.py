@@ -131,7 +131,7 @@ def create_plot_best_symbols(eval_candels_df, best_symbols, show=False):
     # Flatten the 2D array of axes to easily iterate through them
     axes = axes.flatten()
 
-    for i, symb in enumerate(best_symbols.Symbol.values[:4]):
+    for i, symb in enumerate(best_symbols.Symbol.values):
         symb_candels = eval_candels_df[eval_candels_df.Symbol == symb]
         symb_proba = int(best_symbols[best_symbols.Symbol == symb].proba.values[0] * 100) / 100
         

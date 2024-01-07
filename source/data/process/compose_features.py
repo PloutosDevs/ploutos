@@ -28,6 +28,7 @@ def create_lag_features(data, column_names, lag=1):
     Returns:
     - DataFrame with added lag features
     """
+
     # Create a copy of the original DataFrame
     df = data.copy()
 
@@ -40,7 +41,8 @@ def create_lag_features(data, column_names, lag=1):
     return df
 
 
-def add_features(data:pd.DataFrame, exp_config) -> pd.DataFrame:
+def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
+
     feature_cols = sum(list(map(lambda x: x[0], exp_config['features'].values())), []) 
     data_set = pd.DataFrame()
     symbols = data["Symbol"].unique()

@@ -3,6 +3,9 @@
 
 import os
 import sys
+
+import pandas as pd
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from telegram import Update
@@ -11,8 +14,7 @@ import logging
 import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
-from timezonefinder import TimezoneFinder
-from tzlocal import get_localzone
+
 import matplotlib
 matplotlib.use('Agg')
 
@@ -59,8 +61,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("""
-    Welcome to the Cleint Bot.\nFor this purchase the following commands are available:\n- /send - send command is to send the log file from the other side of computer""")
+    await update.message.reply_text(
+        "Welcome to the Cleint Bot.\n"
+        "For this purchase the following commands are available:\n"
+        "- /send - send command is to send the log file from the other side of computer"
+    )
 
 
 async def send_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -87,12 +92,14 @@ async def welcome_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=chat_id, text="Hello! Welcome to the bot.\nTap /start command")
     
 ########### Daily schedule handlers
-    
+
+
 async def alarm(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send the alarm message."""
     job = context.job
     await context.bot.send_message(job.chat_id, text=f"Beep! {job.data} seconds are over!")
-    
+
+
 async def send_document_daily(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send last 30 d BITCOIN prices plot"""
     job = context.job
@@ -109,6 +116,7 @@ def remove_job_if_exists(name: str, context: ContextTypes.DEFAULT_TYPE) -> bool:
     for job in current_jobs:
         job.schedule_removal()
     return True
+
 
 async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a job to the queue."""
@@ -130,7 +138,8 @@ async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         time = datetime.time(hours, minutes)
         
         job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_daily(send_document_daily, time=time, days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id, name=str(chat_id), data=time)
+        context.job_queue.run_daily(send_document_daily, time=time, days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id,
+                                    name=str(chat_id), data=time)
 
         text = f"Schedule successfully set on {time.strftime('%H:%M')} UTC!"
         if job_removed:
