@@ -47,14 +47,20 @@ def create_lag_features(data, column_names, lag=1):
 
 def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
 
-    feature_cols = sum(list(map(lambda x: x[0], exp_config['features'].values())), []) 
-    data_set = pd.DataFrame()
-    symbols = data["Symbol"].unique()
+    symbol_features_cols = sum(
+        list(map(lambda x: x[0], exp_config['features'].get("symbol_features", {}).values())), []
+    )
+    dates_features_cols = sum(
+        list(map(lambda x: x[0], exp_config['features'].get("dates_features", {}).values())), []
+    )
+    feature_cols = symbol_features_cols + dates_features_cols
 
-    for symbol in tqdm(symbols):
+    upd_data = []
+
+    for symbol in tqdm(data["Symbol"].unique()):
         
         # Get sample of prices by ticker
-        sample = data[data["Symbol"] == symbol]
+        sample = data[data["Symbol"] == symbol].copy()
         
         if sample.shape[0] < 10:
             continue
@@ -66,15 +72,46 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
 
         # Calculate trailing cumulative yield over specified rolling window
         # Calculate yield at 1 day before cumulative yield. In other words yield_before_pump is not included in calculation of cum_prod, yield_before_pump == before pump date
-        sample.loc[:, "cum_prod"] = sample["Close"].pct_change().add(1).rolling(window=exp_config['strategy_params']["validation_window"]).apply(np.prod).subtract(1).multiply(100).fillna(0).values
-        sample.loc[:, "yield_before_pump"] = sample["Close"].pct_change().multiply(100).shift(exp_config['strategy_params']["validation_window"])
+        sample.loc[:, "cum_prod"] = (
+            sample["Close"].pct_change()
+                           .add(1)
+                           .rolling(window=exp_config['strategy_params']["validation_window"])
+                           .apply(lambda x: x.cumprod().max())  # np.prod
+                           .subtract(1)
+                           .multiply(100)
+                           .fillna(0)
+                           .values
+        )
+        sample.loc[:, "yield_before_pump"] = (
+            sample["Close"].pct_change().multiply(100).shift(exp_config['strategy_params']["validation_window"])
+        )
 
-        # Calculate features. Feature functions update original DataFrame
-        for feature, values in exp_config['features'].items():
-            eval(feature)(sample, **values[1])
-        
+        # Calculate features relates to symbol
+        for feature, values in exp_config['features'].get("symbol_features", {}).items():
+            sample = eval(feature)(sample, **values[1])
+
+        upd_data.append(sample.copy())
+
+    upd_data = pd.concat(upd_data)
+
+    # Calculate features relates to dates
+    for feature, values in exp_config['features'].get("dates_features", {}).items():
+        upd_data = eval(feature)(upd_data, **values[1])
+
+    data_set = []
+
+    # Calculate lags
+    for symbol in tqdm(upd_data["Symbol"].unique()):
+
+        sample = upd_data[upd_data["Symbol"] == symbol]
+
         feature_df = sample.bfill()
-        feature_df = create_lag_features(feature_df, feature_cols, lag=exp_config['strategy_params']['last_features_window'])
-        data_set = pd.concat([data_set, feature_df])
-        
+        feature_df = create_lag_features(
+            feature_df, feature_cols, lag=exp_config['strategy_params']['last_features_window']
+        )
+
+        data_set.append(feature_df.copy())
+
+    data_set = pd.concat(data_set)
+
     return data_set
