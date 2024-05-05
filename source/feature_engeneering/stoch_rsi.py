@@ -3,7 +3,7 @@ from source.feature_engeneering.rsi import calculate_rsi
 
 def calculate_stoch_rsi(prices_df, rsi_period=14, k_period=14, smooth_k=3, smooth_d=3, ema=False):
     """
-    Receive DataFrame with prices and calculate Stoch RSI indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate Stoch RSI indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
@@ -11,7 +11,7 @@ def calculate_stoch_rsi(prices_df, rsi_period=14, k_period=14, smooth_k=3, smoot
         lookback - period for calculating volatility
         multiplier - coefficient for defining distance between price and bands
     return:
-        Add in original DataFrame new cols "Stoch_RSI_K", "Stoch_RSI_D"
+        Return original DataFrame with new cols "Stoch_RSI_K", "Stoch_RSI_D"
     """
 
     new_prices_df = prices_df.copy()
@@ -33,4 +33,4 @@ def calculate_stoch_rsi(prices_df, rsi_period=14, k_period=14, smooth_k=3, smoot
         prices_df['Stoch_RSI_K'] = k
         prices_df['Stoch_RSI_D'] = k.rolling(smooth_d).mean()
 
-    return
+    return prices_df

@@ -3,12 +3,12 @@ import numpy as np
 
 def calculate_obv(prices_df):
     """
-    Receive DataFrame with prices and calculate obv indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate obv indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
     return:
-        Add in original DataFrame new col "OBV"
+        Return original DataFrame with new col "OBV"
     """
 
     prices_df['OBV'] = np.where(
@@ -22,17 +22,17 @@ def calculate_obv(prices_df):
 
     prices_df['OBV'] = prices_df['OBV'].cumsum()
 
-    return
+    return prices_df
 
 
 def calculate_obv_to_volume_ratio(prices_df):
     """
-    Receive DataFrame with prices and calculate OBV to Volume Ratio indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate OBV to Volume Ratio indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
     return:
-        Add in original DataFrame new col "OBV_Volume_Ratio"
+        Return original DataFrame with new col "OBV_Volume_Ratio"
     """
 
     new_prices_df = prices_df.copy()
@@ -43,4 +43,4 @@ def calculate_obv_to_volume_ratio(prices_df):
 
     prices_df["OBV_Volume_Ratio"] = new_prices_df["OBV_Volume_Ratio"]
 
-    return
+    return prices_df

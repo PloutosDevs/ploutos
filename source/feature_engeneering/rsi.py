@@ -1,14 +1,14 @@
 
 def calculate_rsi(prices_df, period=14, ema=True):
     """
-    Receive DataFrame with prices and calculate RSI indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate RSI indicator.
 
     params:
         prices_df - High, Low, Close, Open, Volume values
         period - smoothing period for moving average
         ema - use ema or sma
     return:
-        Add in original DataFrame new col "RSI"
+        Return original DataFrame with new col "RSI"
     """
 
     close_delta = prices_df['Close'].diff()
@@ -31,4 +31,4 @@ def calculate_rsi(prices_df, period=14, ema=True):
 
     prices_df['RSI'] = rsi
 
-    return
+    return prices_df
