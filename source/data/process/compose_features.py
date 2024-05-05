@@ -14,6 +14,10 @@ from source.feature_engeneering.rate_of_change import calculate_price_rate_of_ch
 from source.feature_engeneering.volume_ratio import calculate_volume_ratio
 from source.feature_engeneering.stoch_rsi import calculate_stoch_rsi
 from source.feature_engeneering.linear_regression import calculate_trailing_linear_reg_params
+from source.feature_engeneering.btc_features import calculate_btc_features
+from source.feature_engeneering.fear_and_greed import calculate_fear_and_greed_index
+from source.feature_engeneering.dominance import calculate_dominance
+from source.feature_engeneering.fibonacci_level import calculate_fibonacci_levels
 
 
 def create_lag_features(data, column_names, lag=1):
