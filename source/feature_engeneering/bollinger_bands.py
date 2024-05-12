@@ -3,7 +3,7 @@ from source.utils import min_max_normalization
 
 def calculate_bb_bands(prices_df, period, multiplier, ema=True):
     """
-    Receive DataFrame with prices and calculate Bollinger bands indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate Bollinger bands indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
@@ -11,7 +11,7 @@ def calculate_bb_bands(prices_df, period, multiplier, ema=True):
         multiplier - coefficient for defining distance between price and bands
         ema - use ema or sma
     return:
-        Add in original DataFrame new cols "Upper_Band", "Lower_Band"
+        Return original DataFrame with new cols "Upper_Band", "Lower_Band"
     """
 
     if ema:
@@ -24,13 +24,12 @@ def calculate_bb_bands(prices_df, period, multiplier, ema=True):
 
     prices_df.drop("BB_MA", axis=1, inplace=True)
 
-    return
+    return prices_df
 
 
 def distance_between_bb_bands(prices_df, period, multiplier, ema=True, normalize=False):
     """
     Receive DataFrame with prices, calculate distance between Bollinger bands and Close.
-    Add values in original DataFrame.
 
     params:
         prices_df - High, Low, Close, Open, Volume values
@@ -39,7 +38,7 @@ def distance_between_bb_bands(prices_df, period, multiplier, ema=True, normalize
         ema - use ema or sma
         normalize - apply min max normalization
     return:
-        Add in original DataFrame new cols "Upper_distance", "Lower_distance"
+        Return original DataFrame with new cols "Upper_distance", "Lower_distance"
     """
     new_prices_df = prices_df.copy()
 
@@ -55,4 +54,4 @@ def distance_between_bb_bands(prices_df, period, multiplier, ema=True, normalize
         prices_df["Upper_distance"] = min_max_normalization(prices_df["Upper_distance"])
         prices_df["Lower_distance"] = min_max_normalization(prices_df["Lower_distance"])
 
-    return
+    return prices_df

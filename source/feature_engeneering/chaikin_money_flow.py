@@ -1,13 +1,13 @@
 
 def calculate_cmf(prices_df, period):
     """
-    Receive DataFrame with prices and calculate Chaikin Money Flow (CMF) indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate Chaikin Money Flow (CMF) indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
         period - smoothing period for moving sum
     return:
-        Add in original DataFrame new col "CMF"
+        Return original DataFrame with new col "CMF"
     """
 
     mf_multiplier = (
@@ -26,4 +26,4 @@ def calculate_cmf(prices_df, period):
 
     prices_df.drop(["MF_Multiplier", "MF_Volume"], axis=1, inplace=True)
 
-    return
+    return prices_df

@@ -45,18 +45,17 @@ def get_simple_linear_regr_params(data: pd.Series):
 def calculate_trailing_linear_reg_params(prices_df, period, col_name):
     """
     Receive DataFrame with specified cols and calculate Trailing linear regression coef and rmse indicators.
-    Add values in original DataFrame.
 
     params:
         prices_df - specified values
         period  - rolling window
         col_name - col name in DataFrame for calculation
     return:
-        Add in original DataFrame new cols "Reg_Coef", "RMSE"
+        Return original DataFrame with new cols "Reg_Coef", "RMSE"
     """
 
     for data in prices_df[col_name].rolling(window=period):
         index = data.index[-1]
         prices_df.loc[index, ["Reg_Coef", "RMSE"]] = get_simple_linear_regr_params(data)
 
-    return
+    return prices_df

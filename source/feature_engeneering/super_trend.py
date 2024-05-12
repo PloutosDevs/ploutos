@@ -6,7 +6,7 @@ from source.feature_engeneering.volatility_functions import calculate_traling_at
 
 def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, multiplier: float):
     """
-    Receive DataFrame with prices and calculate super trend indicator. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate super trend indicator
 
     params:
         prices_df - High, Low, Close, Open, Volume values
@@ -14,7 +14,7 @@ def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, m
         period - period for calculating volatility
         multiplier - coefficient for defining distance between price and bands
     return:
-        Add in original DataFrame new col "SuperTrend"
+        Return original DataFrame with new col "SuperTrend"
     """
 
     high = prices_df['High']
@@ -95,4 +95,4 @@ def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, m
     prices_df['SuperTrend'] = st
     prices_df['SuperTrend'] = prices_df['SuperTrend'].bfill().ffill()
 
-    return
+    return prices_df
