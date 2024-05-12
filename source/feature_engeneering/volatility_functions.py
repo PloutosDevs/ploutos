@@ -3,29 +3,29 @@ import pandas as pd
 
 def calculate_traling_std(prices_df, lookback):
     """
-    Receive DataFrame with prices and calculate trailing STD. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate trailing STD
 
     params:
         prices_df - High, Low, Close, Open, Volume values
         lookback - period for calculating volatility
     return:
-        Add in original DataFrame new col "Trailing_STD"
+        Return original DataFrame with new col "Trailing_STD"
     """
 
     prices_df["Trailing_STD"] = prices_df["Close"].rolling(window=lookback).std().bfill()
 
-    return
+    return prices_df
 
 
 def calculate_traling_atr(prices_df, lookback):
     """
-    Receive DataFrame with prices and calculate trailing ATR. Add values in original DataFrame.
+    Receive DataFrame with prices and calculate trailing ATR
 
     params:
         prices_df - High, Low, Close, Open, Volume values
         lookback - period for calculating volatility
     return:
-        Add in original DataFrame new col "Trailing_ATR"
+        Return original DataFrame with new col "Trailing_ATR"
     """
 
     high = prices_df['High']
@@ -41,4 +41,4 @@ def calculate_traling_atr(prices_df, lookback):
 
     prices_df['Trailing_ATR'] = atr
 
-    return
+    return prices_df
