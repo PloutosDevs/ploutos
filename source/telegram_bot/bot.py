@@ -74,7 +74,7 @@ async def send_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     if not context.args:
         # Get last closed day
-        eval_date = pd.Timestamp.today(tz="UTC") - pd.Timedelta(days=1)
+        eval_date = pd.Timestamp.today(tz=config.DEFAULT_TZ) - pd.Timedelta(days=1)
     else:
         # Get user arguments
         eval_date = pd.to_datetime(str(context.args[0]), format="%Y-%m-%d", errors="coerce", utc=True)
@@ -83,13 +83,13 @@ async def send_document(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.effective_message.reply_text("Sorry, date needs to be in '%Y-%m-%d' format")
         return
 
-    if eval_date > pd.Timestamp.today(tz="UTC").normalize():
+    if eval_date > pd.Timestamp.today(tz=config.DEFAULT_TZ).normalize():
         await update.effective_message.reply_text("Date can't be longer today")
         return
 
     chat_id = update.effective_message.chat_id
 
-    await context.bot.send_message(chat_id, text=f"Wait signals for 1-2 minute")
+    await context.bot.send_message(chat_id, text=f"Wait signals for 3-5 minute")
 
     document, symbols = eval_model(eval_date)
 
@@ -108,7 +108,7 @@ async def warn_not_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Printing errors in console"""
-    await print(f"Update {update} cause error: {context.error}")
+    print(f"Update {update} cause error: {context.error}")
 
 
 async def welcome_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -129,8 +129,10 @@ async def send_document_daily(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     job = context.job
 
+    await context.bot.send_message(job.chat_id, text=f"Wait signals for 3-5 minute")
+
     # Get last closed day
-    eval_date = pd.Timestamp.today(tz="UTC") - pd.Timedelta(days=1)
+    eval_date = pd.Timestamp.today(tz=config.DEFAULT_TZ) - pd.Timedelta(days=1)
 
     document, symbols = eval_model(valuation_date=eval_date)
 
@@ -160,10 +162,10 @@ async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     try:
         # args[0] should contain the hour for the Schedule in hours
-        hours = max(int(context.args[0]), 0)
+        hours = max(int(context.args[0]) - 5, 0)  # Костыль
         # args[1] should contain the minutes for the Schedule in hours
         minutes = max(int(context.args[1]), 0)
-        
+
         if hours > 23 or hours < 0:
             await update.effective_message.reply_text("Sorry, hour need to be from 0 to 23")
             return
@@ -172,7 +174,7 @@ async def set_schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             return
         
         time = datetime.time(hours, minutes)
-        
+
         job_removed = remove_job_if_exists(str(chat_id), context)
         context.job_queue.run_daily(send_document_daily, time=time, days=(0, 1, 2, 3, 4, 5, 6), chat_id=chat_id,
                                     name=str(chat_id), data=time)

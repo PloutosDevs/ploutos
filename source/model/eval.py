@@ -76,23 +76,23 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
         }
     }
 
-    eval_candles_df = utils.filter_symbols_by_last_yield(
-        eval_candles_df, yield_offset=EXPERIMENT_CONFIG["strategy_params"]["first_yield"] / 100
-    )
-
-    if eval_candles_df.empty:
-        return b"", []
-
     # Generate features
     print('Start to generate features')
     eval_features_df = add_features(eval_candles_df, exp_config=EXPERIMENT_CONFIG)
 
     # Load model
-    model = load(os.path.join(config.MODELS_PATH, "xgb_model_new.joblib"))
+    model = load(os.path.join(config.MODELS_PATH, "xgb_v2.joblib"))
 
     # Predict for today
     print('Start to predict')
-    eval_features_df_today = eval_features_df.loc[eval_features_df.index.max()].copy()
+    eval_features_df_today = eval_features_df.loc[
+        (eval_features_df.index == valuation_date) &
+        (eval_features_df["yield_before_pump"] >= EXPERIMENT_CONFIG["strategy_params"]["first_yield"])
+    ].copy()
+
+    # If there aren't signals
+    if eval_features_df_today.empty:
+        return b"", []
 
     eval_features_df_today.loc[:, 'proba'] = model.best_estimator_.predict_proba(
         eval_features_df_today.loc[:, model.feature_names_in_]
