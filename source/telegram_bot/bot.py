@@ -15,6 +15,9 @@ import datetime
 from io import BytesIO
 import matplotlib.pyplot as plt
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import matplotlib
 matplotlib.use('Agg')
 
