@@ -30,8 +30,8 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
     params:
         symbol: Symbol of currency pair, for example "BTCUSDT"
         interval: Interval of candles. All values can be seen in utils.get_time_slide_window
-        start_time: Start datetime of candles in format "%Y-%d-%m %H:%M:%S.%f"
-        end_time: End datetime of candles in format "%Y-%d-%m %H:%M:%S.%f". Default is now
+        start_time: Start datetime of candles in format "%Y-%m-%d %H:%M:%S.%f"
+        end_time: End datetime of candles in format "%Y-%m-%d %H:%M:%S.%f". Default is now
         time_zone: Your timezone pytz.all_timezones
     return:
         Candles with OHLCV cols and pd.Timestamp index

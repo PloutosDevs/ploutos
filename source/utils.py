@@ -128,6 +128,8 @@ def create_plot_best_symbols(eval_candels_df, best_symbols, show=False):
     n_rows = np.ceil(best_symbols.shape[0] / 5).astype(int)
     fig, axes = plt.subplots(nrows=n_rows, ncols=5, figsize=(20, n_rows * 4))
 
+    fig.suptitle(f"Signals on {eval_candels_df.index.max().strftime('%Y-%m-%d')}", fontsize=16)
+
     # Flatten the 2D array of axes to easily iterate through them
     axes = axes.flatten()
 

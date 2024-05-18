@@ -105,7 +105,8 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
 
         sample = upd_data[upd_data["Symbol"] == symbol]
 
-        feature_df = sample.bfill()
+        # Important: ffill berfore bfill!!! Won't look at future
+        feature_df = sample.ffill().bfill()
         feature_df = create_lag_features(
             feature_df, feature_cols, lag=exp_config['strategy_params']['last_features_window']
         )
