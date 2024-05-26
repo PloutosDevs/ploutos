@@ -64,7 +64,7 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
 
         # Get not pumps for diluting data by 0 class in model
         other_values_first = sample[
-            (sample["cum_prod"] < strategy_params["max_yield"]) & (sample["cum_prod"] > 0) &
+            (sample["cum_prod"] < strategy_params["max_yield"]) & (sample["cum_prod"] >= 0) &
             (sample["yield_before_pump"] >= strategy_params["first_yield"])
         ].copy()
 
