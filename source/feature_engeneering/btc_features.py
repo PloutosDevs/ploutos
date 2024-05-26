@@ -1,5 +1,7 @@
+import pandas as pd
 
-def calculate_btc_features(candles_df):
+
+def calculate_btc_features(candles_df: pd.DataFrame) -> pd.DataFrame:
     """
     Create features for other symbols from BTC features
     """

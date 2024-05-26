@@ -1,7 +1,12 @@
+import pandas as pd
+
 from source.feature_engeneering.rsi import calculate_rsi
 
 
-def calculate_stoch_rsi(prices_df, rsi_period=14, k_period=14, smooth_k=3, smooth_d=3, ema=False):
+def calculate_stoch_rsi(
+        prices_df: pd.DataFrame, rsi_period: int = 14, k_period: int = 14, smooth_k: int = 3, smooth_d: int = 3,
+        ema: bool = False
+):
     """
     Receive DataFrame with prices and calculate Stoch RSI indicator
 

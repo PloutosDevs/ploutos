@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def calculate_macd(
         prices_df: pd.DataFrame, short_period: int = 12, long_period: int = 26, smoothing_period: int = 9,
         is_ratios: bool = False

@@ -1,7 +1,5 @@
 import pandas as pd
 
-from source.utils import min_max_normalization
-
 
 def calculate_bb_bands(
         prices_df: pd.DataFrame, period: int, multiplier: float, ema: bool = True

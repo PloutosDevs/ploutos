@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def calculate_traling_std(prices_df: pd.DataFrame, lookback: int, is_ratios: bool = False) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate trailing STD

@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def calculate_ema(prices_df: pd.DataFrame, period: int, is_ratios: bool = False) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate EMA indicator

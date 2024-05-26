@@ -4,7 +4,7 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 
 
-def get_simple_linear_regr_params(data: pd.Series):
+def get_simple_linear_regr_params(data: pd.Series) -> list:
     """
     Get coef and rmse
     """

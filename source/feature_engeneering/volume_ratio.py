@@ -1,5 +1,7 @@
+import pandas as pd
 
-def calculate_volume_ratio(prices_df, period, ema=True):
+
+def calculate_volume_ratio(prices_df: pd.DataFrame, period: int, ema: bool = True):
     """
     Receive DataFrame with prices and calculate volume ratio indicator
 

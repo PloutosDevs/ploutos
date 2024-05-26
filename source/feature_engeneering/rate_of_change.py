@@ -1,5 +1,7 @@
+import pandas as pd
 
-def calculate_price_rate_of_change(prices_df):
+
+def calculate_price_rate_of_change(prices_df: pd.DataFrame) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate price rate of change indicator
 
@@ -14,7 +16,7 @@ def calculate_price_rate_of_change(prices_df):
     return prices_df
 
 
-def calculate_volume_rate_of_change(prices_df):
+def calculate_volume_rate_of_change(prices_df: pd.DataFrame) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate volume rate of change indicator
 

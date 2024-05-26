@@ -1,7 +1,8 @@
 import numpy as np
+import pandas as pd
 
 
-def calculate_obv(prices_df):
+def calculate_obv(prices_df: pd.DataFrame) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate obv indicator
 
@@ -25,7 +26,7 @@ def calculate_obv(prices_df):
     return prices_df
 
 
-def calculate_obv_to_volume_ratio(prices_df):
+def calculate_obv_to_volume_ratio(prices_df: pd.DataFrame) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate OBV to Volume Ratio indicator
 
