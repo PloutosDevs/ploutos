@@ -13,3 +13,4 @@ DEFAULT_TZ = "UTC"  # "Europe/Moscow"
 
 # TEST/PROD
 MODE = "TEST"
+PROD_MODEL = 'model_4_2024_06_01' 
