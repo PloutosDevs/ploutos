@@ -91,7 +91,7 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
     eval_features_df = eval_features_df.drop(EXPERIMENT_CONFIG["data_processing"]["drop_fields"], axis=1)
 
     # Load model
-    model = load(os.path.join(config.MODELS_PATH, "xgb_v2.joblib"))
+    model = load(os.path.join(config.MODELS_PATH, "xgb_v4.joblib"))
 
     # Predict for today
     print('Start to predict')
