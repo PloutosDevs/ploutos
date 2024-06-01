@@ -38,7 +38,7 @@ def calculate_obv_to_volume_ratio(prices_df: pd.DataFrame) -> pd.DataFrame:
 
     new_prices_df = prices_df.copy()
 
-    calculate_obv(new_prices_df)
+    new_prices_df = calculate_obv(new_prices_df)
 
     new_prices_df["OBV_Volume_Ratio"] = new_prices_df["OBV"] / new_prices_df["Volume"]
 

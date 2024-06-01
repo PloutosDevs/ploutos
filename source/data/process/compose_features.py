@@ -18,6 +18,7 @@ from source.feature_engeneering.btc_features import calculate_btc_features
 from source.feature_engeneering.fear_and_greed import calculate_fear_and_greed_index
 from source.feature_engeneering.dominance import calculate_dominance
 from source.feature_engeneering.fibonacci_level import calculate_fibonacci_levels
+from source.feature_engeneering.volatility_functions import calculate_traling_atr
 
 
 def create_lag_features(data, column_names, lag=1):
@@ -42,6 +43,7 @@ def create_lag_features(data, column_names, lag=1):
             lag_series = df[column_name].shift(i)
             lag_series.name = f'{column_name}_lag_{i}'
             df = pd.concat([df, lag_series], axis=1)
+
     return df
 
 
@@ -64,11 +66,6 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
         
         if sample.shape[0] < 10:
             continue
-        
-        # Nomalize prices with beggining 100
-        # Drop first element to avoid mistakes
-        sample.loc[:, ["High", "Low", "Close", "Open"]] = sample.loc[:, ["High", "Low", "Close", "Open"]].apply(normalize_prices)
-        sample = sample.iloc[1:]
 
         # Calculate trailing cumulative yield over specified rolling window
         # Calculate yield at 1 day before cumulative yield. In other words yield_before_pump is not included in calculation of cum_prod, yield_before_pump == before pump date
@@ -80,10 +77,11 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
                            .subtract(1)
                            .multiply(100)
                            .fillna(0)
+                           .shift(- exp_config['strategy_params']["validation_window"])  # Приводим доходность к дате начала пампа
                            .values
         )
         sample.loc[:, "yield_before_pump"] = (
-            sample["Close"].pct_change().multiply(100).shift(exp_config['strategy_params']["validation_window"])
+            sample["Close"].pct_change().multiply(100)
         )
 
         # Calculate features relates to symbol
