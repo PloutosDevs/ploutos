@@ -44,7 +44,7 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
         outliers_values = sample[
             (sample["cum_prod"] >= strategy_params["max_yield"]) &
             (sample["yield_before_pump"] >= strategy_params["first_yield"])
-            ].copy()
+        ].copy()
 
         # If there isn't any pump - skip symbol
         if outliers_values.empty:
@@ -64,7 +64,7 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
 
         # Get not pumps for diluting data by 0 class in model
         other_values_first = sample[
-            (sample["cum_prod"] < strategy_params["max_yield"]) & (sample["cum_prod"] > 0) &
+            (sample["cum_prod"] < strategy_params["max_yield"]) & (sample["cum_prod"] >= 0) &
             (sample["yield_before_pump"] >= strategy_params["first_yield"])
         ].copy()
 
@@ -105,6 +105,9 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
             data_set.append(data_set_value.to_frame().T)
 
     data_set = pd.concat(data_set).sort_index()
+
+    # Drop useless cols
+    data_set = data_set.drop(data_processing["drop_fields"], axis=1)
 
     if drop_bad_values:
         data_set = data_set.dropna()
@@ -201,7 +204,7 @@ def calculate_model_metrics(model: GridSearchCV, x_test: pd.DataFrame, y_test: p
     else:
         predict_proba = model.best_estimator_.predict_proba(x_test)
         rate, _ = optimal_threshold(predict_proba[:, 1])
-        predict = predict_proba[:, 1] >= rate * 1
+        predict = (predict_proba[:, 1] >= rate) * 1
 
 
     print(classification_report(y_test, predict))

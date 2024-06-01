@@ -24,16 +24,19 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
     EXPERIMENT_CONFIG = {
         'features': {
             "symbol_features": {
-                "calculate_supertrend": [["SuperTrend"], {"vol_func": "atr", "period": 20, "multiplier": 2.5}],
+                "calculate_supertrend": [
+                    ["SuperTrend"],
+                    {"vol_func": "atr", "period": 20, "multiplier": 2.5, "is_ratios": True}
+                ],
+                "calculate_traling_atr": [["Trailing_ATR"], {"lookback": 10, "is_ratios": True}],
                 "calculate_macd": [
                     ["MACD_Signal_Line", "MACD", "MACD_Bar_Charts"],
-                    {"short_period": 12, "long_period": 26, "smoothing_period": 9}
+                    {"short_period": 12, "long_period": 26, "smoothing_period": 9, "is_ratios": True}
                 ],
                 "calculate_rsi": [["RSI"], {"period": 20, "ema": True}],
-                "calculate_obv_to_volume_ratio": [["OBV_Volume_Ratio"], {}],
                 "distance_between_bb_bands": [
                     ["Upper_distance", "Lower_distance"],
-                    {"period": 20, "multiplier": 2.5, "ema": 2.5, "normalize": True}
+                    {"period": 20, "multiplier": 2.5, "ema": 2.5, "is_ratios": True}
                 ],
                 "calculate_cmf": [["CMF"], {"period": 20}],
                 "calculate_price_rate_of_change": [["Price_ROC"], {}],
@@ -43,11 +46,14 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
                     ["Stoch_RSI_K", "Stoch_RSI_D"],
                     {"rsi_period": 20, "k_period": 20, "smooth_k": 5, "smooth_k": 5, "ema": True}
                 ],
-                "calculate_trailing_linear_reg_params": [["Reg_Coef", "RMSE"], {"period": 25, "col_name": "cum_prod"}],
+                "calculate_trailing_linear_reg_params": [
+                    ["Reg_Coef", "RMSE"],
+                    {"period": 25, "col_name": "Close", "is_ratios": True}
+                ],
                 "calculate_fibonacci_levels": [
                     ["fibo_23.6", "fibo_38.2", "fibo_50", "fibo_61.8", "fibo_100"],
                     {"period": 21, "type_deal": "long"}
-                ]
+                ],
             },
             "dates_features": {
                 "calculate_fear_and_greed_index": [["fear_and_greed"], {}],
@@ -55,7 +61,7 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
                 "calculate_btc_features": [
                     [
                         'btc_SuperTrend', 'btc_MACD_Signal_Line', 'btc_MACD', 'btc_MACD_Bar_Charts', 'btc_RSI',
-                        'btc_OBV_Volume_Ratio', 'btc_Upper_distance', 'btc_Lower_distance', 'btc_CMF', 'btc_Price_ROC',
+                        'btc_Upper_distance', 'btc_Lower_distance', 'btc_CMF', 'btc_Price_ROC',
                         'btc_Volume_ROC', 'btc_Volume_Ratio', 'btc_Stoch_RSI_K', 'btc_Stoch_RSI_D', 'btc_Reg_Coef',
                         'btc_RMSE'
                     ],
@@ -72,7 +78,8 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
             "first_yield": 3  # %
         },
         'data_processing': {
-            "sample_multiplier": 2.5
+            "sample_multiplier": 2.5,
+            "drop_fields": ["High", "Low", "Close", "Open", "Volume", "cum_prod"]
         }
     }
 
@@ -80,8 +87,11 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
     print('Start to generate features')
     eval_features_df = add_features(eval_candles_df, exp_config=EXPERIMENT_CONFIG)
 
+    # Drop useless cols
+    eval_features_df = eval_features_df.drop(EXPERIMENT_CONFIG["data_processing"]["drop_fields"], axis=1)
+
     # Load model
-    model = load(os.path.join(config.MODELS_PATH, "xgb_v2.joblib"))
+    model = load(os.path.join(config.MODELS_PATH, "xgb_v4.joblib"))
 
     # Predict for today
     print('Start to predict')

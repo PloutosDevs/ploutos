@@ -3,7 +3,8 @@ import pandas as pd
 
 import config
 
-def calculate_fear_and_greed_index(candels_df):
+
+def calculate_fear_and_greed_index(candels_df: pd.DataFrame) -> pd.DataFrame:
     """
     Receives DataFrame with prices and calculates Fear and Greed Index
 

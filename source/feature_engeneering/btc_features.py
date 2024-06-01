@@ -1,11 +1,13 @@
+import pandas as pd
 
-def calculate_btc_features(candles_df):
+
+def calculate_btc_features(candles_df: pd.DataFrame) -> pd.DataFrame:
     """
     Create features for other symbols from BTC features
     """
 
     feature_cols = [
-        'SuperTrend', 'MACD_Signal_Line', 'MACD', 'MACD_Bar_Charts', 'RSI', 'OBV_Volume_Ratio', 'Upper_distance',
+        'SuperTrend', 'MACD_Signal_Line', 'MACD', 'MACD_Bar_Charts', 'RSI', 'Upper_distance',
         'Lower_distance', 'CMF', 'Price_ROC', 'Volume_ROC', 'Volume_Ratio', 'Stoch_RSI_K', 'Stoch_RSI_D', 'Reg_Coef',
         'RMSE'
     ]

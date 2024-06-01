@@ -4,7 +4,9 @@ import numpy as np
 from source.feature_engeneering.volatility_functions import calculate_traling_atr, calculate_traling_std
 
 
-def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, multiplier: float):
+def calculate_supertrend(
+        prices_df: pd.DataFrame, vol_func: str, period:  int, multiplier: float, is_ratios: bool = False
+) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate super trend indicator
 
@@ -13,6 +15,7 @@ def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, m
         vol_func - volatility function. Can be: std, atr
         period - period for calculating volatility
         multiplier - coefficient for defining distance between price and bands
+        is_ratios - flag for returning values as ratios to close price
     return:
         Return original DataFrame with new col "SuperTrend"
     """
@@ -92,7 +95,9 @@ def calculate_supertrend(prices_df: pd.DataFrame, vol_func: str, period:  int, m
 
     st, upt, dt = pd.Series(supertrend.iloc[:, 0]), pd.Series(upt), pd.Series(dt)
     upt.index, dt.index = supertrend.index, supertrend.index
-    prices_df['SuperTrend'] = st
-    prices_df['SuperTrend'] = prices_df['SuperTrend'].bfill().ffill()
+    prices_df['SuperTrend'] = st.bfill().ffill()
+
+    if is_ratios:
+        prices_df['SuperTrend'] = prices_df['SuperTrend'].divide(prices_df['Close'])
 
     return prices_df
