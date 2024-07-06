@@ -1,5 +1,7 @@
+import pandas as pd
 
-def calculate_cmf(prices_df, period):
+
+def calculate_cmf(prices_df: pd.DataFrame, period: int) -> pd.DataFrame:
     """
     Receive DataFrame with prices and calculate Chaikin Money Flow (CMF) indicator
 

@@ -5,6 +5,7 @@ from source.data.get.coin_market_cap import CoinMarketCap
 
 import config
 
+
 # Из файла
 # def calculate_dominance(candles_df: pd.DataFrame) -> pd.DataFrame:
 #     """
@@ -28,6 +29,7 @@ import config
 #     candles_df = candles_df.merge(btc_dominance, right_index=True, left_index=True, how="left")
 #
 #     return candles_df
+
 
 def calculate_dominance(candles_df: pd.DataFrame) -> pd.DataFrame:
     """

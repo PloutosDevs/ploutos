@@ -4,7 +4,7 @@ from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 
 
-def get_simple_linear_regr_params(data: pd.Series):
+def get_simple_linear_regr_params(data: pd.Series) -> list:
     """
     Get coef and rmse
     """
@@ -42,7 +42,9 @@ def get_simple_linear_regr_params(data: pd.Series):
     return [regr.coef_[0], mean_squared_error(y_train, y_pred) ** 0.5]
 
 
-def calculate_trailing_linear_reg_params(prices_df, period, col_name):
+def calculate_trailing_linear_reg_params(
+        prices_df: pd.DataFrame, period: int, col_name: str, is_ratios: bool = False
+) -> pd.DataFrame:
     """
     Receive DataFrame with specified cols and calculate Trailing linear regression coef and rmse indicators.
 
@@ -50,6 +52,7 @@ def calculate_trailing_linear_reg_params(prices_df, period, col_name):
         prices_df - specified values
         period  - rolling window
         col_name - col name in DataFrame for calculation
+        is_ratios - flag for returning values as ratios to col_name
     return:
         Return original DataFrame with new cols "Reg_Coef", "RMSE"
     """
@@ -57,5 +60,8 @@ def calculate_trailing_linear_reg_params(prices_df, period, col_name):
     for data in prices_df[col_name].rolling(window=period):
         index = data.index[-1]
         prices_df.loc[index, ["Reg_Coef", "RMSE"]] = get_simple_linear_regr_params(data)
+
+    if is_ratios:
+        prices_df["RMSE"] = prices_df["RMSE"].divide(prices_df[col_name])
 
     return prices_df

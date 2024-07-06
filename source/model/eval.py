@@ -1,87 +1,39 @@
 from source.data.get.binance_prices import get_binance_symbols, compose_binance_candles_df
 from source.data.process.compose_features import add_features
 from joblib import load
+import json
 import os
 import config
 from source import utils
 import pandas as pd
 
-
 def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAULT_TZ).normalize(),
-               candles_period: int = 60, best_symbols_offset: int = 50):
+               candles_period: int = 60, 
+               best_symbols_offset: int = 50
+               ):
 
     # Get data
     print('Start to get candels')
     BINANCE_SYMBOLS = get_binance_symbols(only_usdt=True)
-    # BINANCE_SYMBOLS = ['LOOMUSDT', 'HIFIUSDT', 'VICUSDT', 'RPLUSDT', 'ATAUSDT']
+    # BINANCE_SYMBOLS = ['BTCUSDT', 'LOOMUSDT', 'HIFIUSDT', 'VICUSDT', 'RPLUSDT', 'ATAUSDT']
 
     candles_start_date = (valuation_date - pd.Timedelta(days=candles_period)).strftime("%Y-%m-%d")
     candles_end_date = valuation_date.strftime("%Y-%m-%d") + " 23:59:59.999999"
 
     eval_candles_df = compose_binance_candles_df(BINANCE_SYMBOLS, start_time=candles_start_date,
                                                  end_time=candles_end_date)
+    print('Got candels successfully')
 
-    EXPERIMENT_CONFIG = {
-        'features': {
-            "symbol_features": {
-                "calculate_supertrend": [["SuperTrend"], {"vol_func": "atr", "period": 20, "multiplier": 2.5}],
-                "calculate_macd": [
-                    ["MACD_Signal_Line", "MACD", "MACD_Bar_Charts"],
-                    {"short_period": 12, "long_period": 26, "smoothing_period": 9}
-                ],
-                "calculate_rsi": [["RSI"], {"period": 20, "ema": True}],
-                "calculate_obv_to_volume_ratio": [["OBV_Volume_Ratio"], {}],
-                "distance_between_bb_bands": [
-                    ["Upper_distance", "Lower_distance"],
-                    {"period": 20, "multiplier": 2.5, "ema": 2.5, "normalize": True}
-                ],
-                "calculate_cmf": [["CMF"], {"period": 20}],
-                "calculate_price_rate_of_change": [["Price_ROC"], {}],
-                "calculate_volume_rate_of_change": [["Volume_ROC"], {}],
-                "calculate_volume_ratio": [["Volume_Ratio"], {"period": 20, "ema": True}],
-                "calculate_stoch_rsi": [
-                    ["Stoch_RSI_K", "Stoch_RSI_D"],
-                    {"rsi_period": 20, "k_period": 20, "smooth_k": 5, "smooth_k": 5, "ema": True}
-                ],
-                "calculate_trailing_linear_reg_params": [["Reg_Coef", "RMSE"], {"period": 25, "col_name": "cum_prod"}],
-                "calculate_fibonacci_levels": [
-                    ["fibo_23.6", "fibo_38.2", "fibo_50", "fibo_61.8", "fibo_100"],
-                    {"period": 21, "type_deal": "long"}
-                ]
-            },
-            "dates_features": {
-                "calculate_fear_and_greed_index": [["fear_and_greed"], {}],
-                "calculate_dominance": [["btc_dominance", "eth_dominance"], {}],
-                "calculate_btc_features": [
-                    [
-                        'btc_SuperTrend', 'btc_MACD_Signal_Line', 'btc_MACD', 'btc_MACD_Bar_Charts', 'btc_RSI',
-                        'btc_OBV_Volume_Ratio', 'btc_Upper_distance', 'btc_Lower_distance', 'btc_CMF', 'btc_Price_ROC',
-                        'btc_Volume_ROC', 'btc_Volume_Ratio', 'btc_Stoch_RSI_K', 'btc_Stoch_RSI_D', 'btc_Reg_Coef',
-                        'btc_RMSE'
-                    ],
-                    {}
-                ]
-            }
-        },
-        'strategy_params': {
-            "last_features_window": 7,
-            "candles_between_pump": 25,
-            "validation_window": 20,  # candles
-            "min_yield": -20,  # %
-            "max_yield": 20,  # %
-            "first_yield": 3  # %
-        },
-        'data_processing': {
-            "sample_multiplier": 2.5
-        }
-    }
+
+    print('Start getting model')
+    # Load model
+    model, EXPERIMENT_CONFIG  = load_model_from_path(model_name=config.PROD_MODEL)
+    print('Model has been loaded')
 
     # Generate features
     print('Start to generate features')
     eval_features_df = add_features(eval_candles_df, exp_config=EXPERIMENT_CONFIG)
-
-    # Load model
-    model = load(os.path.join(config.MODELS_PATH, "xgb_v2.joblib"))
+    print('Features were generated')
 
     # Predict for today
     print('Start to predict')
@@ -92,6 +44,7 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
 
     # If there aren't signals
     if eval_features_df_today.empty:
+        print('There are not any first_yield symbols')
         return b"", []
 
     eval_features_df_today.loc[:, 'proba'] = model.best_estimator_.predict_proba(
@@ -109,7 +62,26 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
                               .head(best_symbols_offset)
     )
     
+    # If there aren't signals
+    if best_symbols.empty:
+        print('There are not any 1 class predictions')
+        return b"", []
+    
     # Make plots
     plots_buffer = utils.create_plot_best_symbols(eval_candles_df, best_symbols, show=False)
     
+    print('Prediction ended')
     return plots_buffer, best_symbols.Symbol.values.tolist()
+
+
+def load_model_from_path(model_name: str):
+    model_path = os.path.join(config.MODELS_PATH, model_name)
+
+    # load config
+    with open(os.path.join(model_path, 'exp_config.json')) as json_file:
+            enp_config = json.load(json_file)
+            
+    # Load model
+    model = load(os.path.join(model_path, "model.joblib"))
+            
+    return model, enp_config

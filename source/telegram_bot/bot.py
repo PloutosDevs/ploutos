@@ -66,9 +66,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "Welcome to the Cleint Bot.\n"
-        "For this purchase the following commands are available:\n"
-        "- /send - send command is to send the log file from the other side of computer"
+        "Welcome to the Ploutos Bot.\n"
+        "There are some commnads:\n"
+        "- /send <date> - send command is used to send forecast\n"
+        "- /set - set command is used to set schedule of uncoming reports\n"
     )
 
 
