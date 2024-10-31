@@ -1,6 +1,7 @@
 #!/usr/lib/python3.10 python3
 # pylint: disable=unused-argument
 
+from dotenv import load_dotenv
 import os
 import sys
 
@@ -12,8 +13,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 import logging
 import datetime
-from io import BytesIO
-import matplotlib.pyplot as plt
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -21,8 +20,6 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import matplotlib
 matplotlib.use('Agg')
 
-from source import utils
-from source.data.get.binance_prices import get_candles_spot_binance
 from source.model.eval import eval_model
 
 import config
@@ -36,25 +33,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-# def create_scatter_plot():
-#     df = get_candles_spot_binance('BTCUSDT', "1d", "2023-10-01T10:00:00")
-#     df = df['Close'][-30:]
-#     df.index = df.index.astype(str).str[:10]
-#     df.plot()
-#     plt.title('Bitcoin Prices (Last 30 Days)')
-#     plt.xlabel('Date')
-#     plt.ylabel('Price (USD)')
-#     # plt.grid(True)
-#     plt.xticks(rotation=45)
-#     plt.tight_layout()
-
-#     # Save the plot as a PNG image
-#     img_buffer = BytesIO()
-#     plt.savefig(img_buffer, format='png')
-#     img_buffer.seek(0)
-#     plt.close()
-
-#     return img_buffer
+load_dotenv()
 
 # Define a base command handlers
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -66,9 +45,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        "Welcome to the Cleint Bot.\n"
-        "For this purchase the following commands are available:\n"
-        "- /send - send command is to send the log file from the other side of computer"
+        "Welcome to the Ploutos Bot.\n"
+        "There are some commnads:\n"
+        "- /send <date> - send command is used to send forecast\n"
+        "- /set - set command is used to set schedule of uncoming reports\n"
     )
 
 
@@ -204,7 +184,7 @@ def main() -> None:
 
     token_key= 'TELEGRAM_BOT_TOKEN' if config.MODE == "PROD" else 'TELEGRAM_BOT_TOKEN_TEST'
 
-    BOT_TOKEN = utils.get_secrets(token_key)
+    BOT_TOKEN = os.getenv(token_key)
 
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()

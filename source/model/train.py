@@ -1,8 +1,11 @@
 import pandas as pd
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import numpy as np
 import xgboost as xgb
 from joblib import dump
+import datetime
+from copy import deepcopy
+import json
 import os
 
 from sklearn.model_selection import StratifiedKFold, GridSearchCV
@@ -150,7 +153,7 @@ def prepare_data_sets(candles_df: pd.DataFrame, strategy_config: dict, split_coe
     return x_train, x_test, y_train, y_test
 
 
-def train_model(x_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict, model_name: str = None):
+def train_model(x_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict):
     """
     Gets data sets and trains model.
 
@@ -178,14 +181,13 @@ def train_model(x_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict, mod
 
     model.fit(x_train, y_train)
 
-    if model_name:
-        dump(model, os.path.join(config.MODELS_PATH, model_name))
-
     return model
 
 
 def calculate_model_metrics(model: GridSearchCV, x_test: pd.DataFrame, y_test: pd.Series,
-                            proba: bool = False) -> pd.Series:
+                            proba: bool = False,
+                            save_dir: str = None
+                            ) -> pd.Series:
     """
     Returns predict and shows up metrics
 
@@ -206,10 +208,47 @@ def calculate_model_metrics(model: GridSearchCV, x_test: pd.DataFrame, y_test: p
         rate, _ = optimal_threshold(predict_proba[:, 1])
         predict = (predict_proba[:, 1] >= rate) * 1
 
-
-    print(classification_report(y_test, predict))
-    print("accuracy: ", accuracy_score(y_test, predict))
-    print(confusion_matrix(y_test, predict))
-    # plot_confusion_matrix(y_test, predict, classes=[0, 1])
+    if save_dir:
+        METRICS_FILE_NAME = 'metrics.txt'
+        
+        with open(os.path.join(save_dir, METRICS_FILE_NAME), 'a') as record_file:
+            record_file.write(str(classification_report(y_test, predict) + '\n'))
+            
+            record_file.write(str(confusion_matrix(y_test, predict)))
+            
+        
+    else:
+        print(classification_report(y_test, predict))
+        print("accuracy: ", accuracy_score(y_test, predict))
+        print(confusion_matrix(y_test, predict))
+         # plot_confusion_matrix(y_test, predict, classes=[0, 1])
 
     return predict
+
+
+
+def save_model(model, exp_config, x_test, y_test) -> None:
+    # Make new model folder
+    new_folder_num = str(len(os.listdir(config.MODELS_PATH)) + 1)
+    now = datetime.date.today()
+
+    exp_folder = os.path.join(config.MODELS_PATH, "model_" + new_folder_num + '_' + now.strftime('%Y_%m_%d'))
+    os.mkdir(exp_folder)
+    print(f"Save new model in {exp_folder}")
+
+    # Save config
+    CONFIG_ = deepcopy(exp_config)
+    with open(os.path.join(exp_folder, "exp_config.json"), "w") as outfile:
+        json.dump(CONFIG_, outfile, skipkeys=True)
+
+    # Save model
+    model_name = "model.joblib"
+    dump(model, os.path.join(exp_folder, model_name))
+
+    # Save metrics
+    _ = calculate_model_metrics(model, x_test, y_test, proba=False, save_dir=exp_folder)
+    
+    print(f"Model {model_name} saved in {exp_folder}")
+    
+    
+    

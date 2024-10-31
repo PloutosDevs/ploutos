@@ -1,8 +1,9 @@
+import os
 import requests
 from time import sleep
+from dotenv import load_dotenv
 
-from source.utils import get_secrets
-
+load_dotenv()
 
 class CoinMarketCap:
     """
@@ -17,7 +18,7 @@ class CoinMarketCap:
             {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "X-CMC_PRO_API_KEY": get_secrets("COIN_MARKET_CAP_PROD")
+                "X-CMC_PRO_API_KEY": os.getenv("COIN_MARKET_CAP_PROD")
             }
         )
 
