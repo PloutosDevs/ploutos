@@ -9,7 +9,9 @@ import json
 import os
 
 from sklearn.model_selection import StratifiedKFold, GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score, classification_report, confusion_matrix, make_scorer, recall_score, precision_score
+)
 
 from source.data.process.compose_features import add_features
 from source.utils import optimal_threshold
@@ -171,11 +173,15 @@ def train_model(x_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict):
 
     kfold = StratifiedKFold(n_splits=5, random_state=None, shuffle=False)
 
+    # Create a custom scorer
+    custom_scorer = make_scorer(custom_metric, greater_is_better=True)
+
     model = GridSearchCV(
         xgb_model,
+        scoring=custom_scorer,
         param_grid=xgb_params,
         cv=kfold,
-        verbose=1,
+        verbose=4,
         n_jobs=6
     )
 
@@ -226,8 +232,8 @@ def calculate_model_metrics(model: GridSearchCV, x_test: pd.DataFrame, y_test: p
     return predict
 
 
-
 def save_model(model, exp_config, x_test, y_test) -> None:
+
     # Make new model folder
     new_folder_num = str(len(os.listdir(config.MODELS_PATH)) + 1)
     now = datetime.date.today()
@@ -249,6 +255,11 @@ def save_model(model, exp_config, x_test, y_test) -> None:
     _ = calculate_model_metrics(model, x_test, y_test, proba=False, save_dir=exp_folder)
     
     print(f"Model {model_name} saved in {exp_folder}")
-    
-    
-    
+
+
+def custom_metric(y_true, y_pred):
+
+    recall_negative = recall_score(y_true, y_pred, pos_label=0)
+    precision_positive = precision_score(y_true, y_pred, pos_label=1)
+
+    return recall_negative * precision_positive
