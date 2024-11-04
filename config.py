@@ -12,5 +12,5 @@ SECRETS_PATH = os.path.join(PATH, "secrets.json")
 DEFAULT_TZ = "UTC"  # "Europe/Moscow"
 
 # TEST/PROD
-MODE = "TEST"
+MODE = "PROD"
 PROD_MODEL = 'model_4_2024_06_01' 
