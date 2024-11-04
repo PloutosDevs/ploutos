@@ -21,7 +21,7 @@ def eval_model(valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAU
     candles_end_date = valuation_date.strftime("%Y-%m-%d") + " 23:59:59.999999"
 
     eval_candles_df = compose_binance_candles_df(BINANCE_SYMBOLS, start_time=candles_start_date,
-                                                 end_time=candles_end_date)
+                                                 end_time=candles_end_date, interval='1d')
     print('Got candels successfully')
 
 

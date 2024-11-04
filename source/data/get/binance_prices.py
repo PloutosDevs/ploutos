@@ -94,22 +94,28 @@ def get_candles_spot_binance(symbol: str, interval: str, start_time: str, end_ti
     return base_candles
 
 
-def compose_binance_candles_df(symbols: list, start_time: str, end_time: str = None):
+def compose_binance_candles_df(
+        symbols: list,
+        start_time: str,
+        end_time: str = None,
+        interval: str = "1d",
+        time_zone=config.DEFAULT_TZ
+):
 
     results_df = pd.DataFrame(columns=["Time", "Open", "High", "Low", "Close", "Volume", "Symbol"]).set_index("Time")
     
     for symbol in tqdm(symbols):
 
         try:
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
-                                          time_zone=config.DEFAULT_TZ)
+            df = get_candles_spot_binance(symbol, interval, start_time=start_time, end_time=end_time,
+                                          time_zone=time_zone)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])
         except ConnectionError:
             sleep(10)
-            df = get_candles_spot_binance(symbol, "1d", start_time=start_time, end_time=end_time,
-                                          time_zone=config.DEFAULT_TZ)
+            df = get_candles_spot_binance(symbol, interval, start_time=start_time, end_time=end_time,
+                                          time_zone=time_zone)
             if not df.empty:
                 df.loc[:, "Symbol"] = symbol
                 results_df = pd.concat([results_df if not results_df.empty else None, df])
