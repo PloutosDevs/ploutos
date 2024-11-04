@@ -39,6 +39,9 @@ jobs:
 
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@v0.1.7
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN_TEST: ${{ secrets.TELEGRAM_BOT_TOKEN_TEST }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
