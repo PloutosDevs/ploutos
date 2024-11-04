@@ -9,7 +9,7 @@ def calculate_btc_features(candles_df: pd.DataFrame) -> pd.DataFrame:
     feature_cols = [
         'SuperTrend', 'MACD_Signal_Line', 'MACD', 'MACD_Bar_Charts', 'RSI', 'Upper_distance',
         'Lower_distance', 'CMF', 'Price_ROC', 'Volume_ROC', 'Volume_Ratio', 'Stoch_RSI_K', 'Stoch_RSI_D', 'Reg_Coef',
-        'RMSE'
+        'RMSE', 'after_pump', 'after_dump'
     ]
 
     btc_features = candles_df[candles_df["Symbol"] == "BTCUSDT"][feature_cols]
