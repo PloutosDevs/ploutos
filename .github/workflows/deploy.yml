@@ -36,5 +36,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Copy the repository to the VM and deploy with Docker Compose
-            scp -r -o StrictHostKeyChecking=no ./ ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app
-            ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cd /home/${{ secrets.REMOTE_USER }}/app && docker-compose down && docker-compose up -d --build"
+            scp -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ./ ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:/home/${{ secrets.REMOTE_USER }}/app
+            ssh -v -i ~/.ssh/id_rsa ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} "cd /home/${{ secrets.REMOTE_USER }}/app && docker-compose down && docker-compose up -d --build"
