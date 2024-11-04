@@ -4,7 +4,7 @@ services:
     # image: ghcr.io/${GITHUB_REPOSITORY}:latest
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     container_name: ploutos
     restart: always
     env_file:
