@@ -11,6 +11,4 @@ telegram==0.0.1
 python-telegram-bot[job-queue]
 seaborn==0.13.2
 plotly==5.22.0
-jupyterlab
-ipywidgets
 python-dotenv==1.0.1

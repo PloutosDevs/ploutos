@@ -10,3 +10,4 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_BOT_TOKEN_TEST=${TELEGRAM_BOT_TOKEN_TEST}
+    pull_policy: always

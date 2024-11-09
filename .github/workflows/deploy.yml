@@ -49,6 +49,7 @@ jobs:
           script: |
             export TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             export TELEGRAM_BOT_TOKEN_TEST=${{ secrets.TELEGRAM_BOT_TOKEN_TEST }}
+            echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             cd /home/${{ secrets.REMOTE_USER }}/app
             docker-compose down
             docker-compose up -d --build
