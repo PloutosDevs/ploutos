@@ -47,6 +47,8 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            export TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            export TELEGRAM_BOT_TOKEN_TEST=${{ secrets.TELEGRAM_BOT_TOKEN_TEST }}
             cd /home/${{ secrets.REMOTE_USER }}/app
             docker-compose down
             docker-compose up -d --build
