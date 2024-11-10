@@ -86,3 +86,92 @@ def get_finish_abnormal_moves(candles_df: pd.DataFrame, mean_window: int = 14, s
     candles_df = candles_df.drop("pump", axis=1)
 
     return candles_df
+
+
+def get_candle_patterns(candles_df: pd.DataFrame, pinbar: float = 0.2, inout: float = 0.2,
+                        engulf: float = 0.2) -> pd.DataFrame:
+    """
+    Return original DataFrame with candles patterns pinbar, engulf, inout
+
+    All params set ratio body candle to full length candle. As lower as more patterns.
+
+    params:
+        candles_df - High, Low, Close, Open, Volume values
+        pinbar - Coef for pinbar
+        inout - Coef for inout
+        engulf - Coef for engulf
+
+    return:
+        DataFrame
+    """
+
+    candles_df = candles_df.copy()
+
+    candles_df.loc[:, ['bull_pin', 'bear_pin', 'in_bar', 'out_bar', 'bull_engulf', 'bear_engulf']] = 0
+
+    for i in range(3, len(candles_df)):
+        current = candles_df.iloc[i, :]
+        prev = candles_df.iloc[i - 1, :]
+        prev_2 = candles_df.iloc[i - 2, :]
+        prev_3 = candles_df.iloc[i - 3, :]
+        real_body = abs(current['Open'] - current['Close'])
+        candle_range = current['High'] - current['Low']
+        real_body_prev = abs(prev['Open'] - prev['Close'])
+        candle_range_prev = prev['High'] - prev['Low']
+        idx = candles_df.index[i]
+
+        # Bullish pinbar
+        # Body candle is small, but length is big"""
+        candles_df.loc[idx, 'bull_pin'] = int(
+            real_body / candle_range >= pinbar and
+            current['Close'] > current['Low'] + candle_range / 3 and
+            current['Low'] < prev['Low'] and
+            prev['Low'] < prev_2['Low']
+        )
+
+        # Bearish pinbar
+        candles_df.loc[idx, 'bear_pin'] = int(
+            real_body / candle_range >= pinbar and
+            current['Close'] < current['High'] - candle_range / 3 and
+            current['High'] > prev['High'] and
+            prev['High'] > prev_2['High']
+        )
+
+        # Inside bar
+        # Current candle inside range of previous candle
+        candles_df.loc[idx, 'in_bar'] = int(
+            current['High'] < max(prev['Low'], prev['High']) and
+            current['Low'] > min(prev['Low'], prev['High']) and
+            real_body_prev / candle_range_prev > inout and
+            real_body / candle_range > inout
+        )
+
+        # Outside bar
+        # Current candle outside range of previous candle
+        candles_df.loc[idx, 'out_bar'] = int(
+            current['High'] > max(prev['Low'], prev['High']) and
+            current['Low'] < min(prev['Low'], prev['High']) and
+            real_body_prev / candle_range_prev > inout and
+            real_body / candle_range > inout
+        )
+
+        # Bullish engulfing
+        # Current candle engulfs previous candle
+        candles_df.loc[idx, 'bull_engulf'] = int(
+            current['High'] > prev['High'] and
+            current['Low'] < prev['Low'] and
+            real_body >= engulf * candle_range and
+            current['Close'] > current['Open'] and
+            prev['Close'] < prev['Open']
+        )
+
+        # Bearish engulfing
+        candles_df.loc[idx, 'bear_engulf'] = int(
+            current['High'] > prev['High'] and
+            current['Low'] < prev['Low'] and
+            real_body >= engulf * candle_range and
+            current['Close'] < current['Open'] and
+            prev['Close'] > prev['Open']
+        )
+
+    return candles_df

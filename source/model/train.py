@@ -8,13 +8,13 @@ from copy import deepcopy
 import json
 import os
 
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.metrics import (
     accuracy_score, classification_report, confusion_matrix, make_scorer, recall_score, precision_score
 )
 
 from source.data.process.compose_features import add_features
-from source.utils import optimal_threshold
+from source.utils import optimal_threshold, drop_highly_corr_features
 
 import config
 
@@ -115,13 +115,26 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
     data_set = data_set.drop(data_processing["drop_fields"], axis=1)
 
     if drop_bad_values:
+
         data_set = data_set.dropna()
         data_set = data_set[np.all(data_set != np.inf, axis=1)]
+
+        # Take cols with high cardinal features
+        winzored_cols = data_set.loc[:, data_set.apply(lambda x: len(x.unique())) > len(data_set) / 2].columns
+
+        data_set.loc[:, winzored_cols] = (
+            data_set.loc[:, winzored_cols].apply(lambda x: x.clip(x.quantile(0.05), x.quantile(0.95)))
+        )
+
+        data_set = drop_highly_corr_features(data_set, rate=0.95)
+
+    data_set = data_set.set_index(["Symbol", "data_type"], append=True)
+    data_set.index.names = ['date', 'Symbol', 'data_type']
 
     return data_set
 
 
-def prepare_data_sets(candles_df: pd.DataFrame, strategy_config: dict, split_coef: float = 0.8):
+def prepare_data_sets(candles_df: pd.DataFrame, strategy_config: dict, features_df=pd.DataFrame()):
     """
     Gets candles, adds features, generates and splits data sets
 
@@ -133,21 +146,38 @@ def prepare_data_sets(candles_df: pd.DataFrame, strategy_config: dict, split_coe
     return:
         x_train, x_test, y_train, y_test
     """
+
     # Calculate features
-    features_df = add_features(candles_df, strategy_config).sort_index()
+    if features_df.empty:
+        features_df = add_features(candles_df, strategy_config).sort_index()
+    else:
+        feature_mask = "|".join(
+            sum(
+                list(map(lambda x: x[0], strategy_config['features']["symbol_features"].values())) +
+                list(map(lambda x: x[0], strategy_config['features']["dates_features"].values())),
+                []
+            )
+        )
+        features_df = features_df.loc[:, ~features_df.columns.str.contains(feature_mask)]
 
     # Define index for split in order to avoid containing equal dates in train and test
-    split_index = len(features_df[features_df.index < features_df.iloc[int(len(features_df) * split_coef)].name])
+    split_index = len(
+        features_df[
+            features_df.index <
+            features_df.iloc[int(len(features_df) * strategy_config['data_processing']['split_coef'])].name
+        ]
+    )
 
     # Split on train and test
     train_set = generate_data_set(features_df.iloc[:split_index], strategy_config, drop_bad_values=True)
     test_set = generate_data_set(features_df.iloc[split_index:], strategy_config, drop_bad_values=True)
 
-    feature_names = train_set.drop(["Symbol", "class", "data_type"], axis=1).columns
+    # Drop days with lots signals
+    train_set = remove_outliers_days(train_set, quantile_level=0.97)
 
     x_train, x_test, y_train, y_test = (
-        train_set.loc[:, feature_names].astype('float'),
-        test_set.loc[:, feature_names].astype('float'),
+        train_set.drop('class', axis=1).astype('float'),
+        test_set.drop('class', axis=1).astype('float'),
         train_set.loc[:, 'class'].astype('int'),
         test_set.loc[:, 'class'].astype('int'),
     )
@@ -171,7 +201,7 @@ def train_model(x_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict):
 
     xgb_model = xgb.XGBClassifier(objective="binary:logistic", random_state=42)
 
-    kfold = StratifiedKFold(n_splits=5, random_state=None, shuffle=False)
+    kfold = KFold(n_splits=5, random_state=None, shuffle=False)
 
     # Create a custom scorer
     custom_scorer = make_scorer(custom_metric, greater_is_better=True)
@@ -260,6 +290,30 @@ def save_model(model, exp_config, x_test, y_test) -> None:
 def custom_metric(y_true, y_pred):
 
     recall_negative = recall_score(y_true, y_pred, pos_label=0)
-    precision_positive = precision_score(y_true, y_pred, pos_label=1)
+    recall_positive = recall_score(y_true, y_pred, pos_label=1)
+    # precision_positive = precision_score(y_true, y_pred, pos_label=1)
 
-    return recall_negative * precision_positive
+    return recall_positive# * recall_negative # precision_positive
+
+
+def remove_outliers_days(train_set, quantile_level=0.97):
+
+    # Group by 'date' and sum up the 'class' values for each day
+    grouped_class = train_set.groupby(level='date')['class'].sum()
+
+    # Calculate the quantile threshold
+    quantile = int(grouped_class.quantile(quantile_level))
+
+    # Identify dates with outlier values that exceed the quantile threshold
+    outliers_days = grouped_class[grouped_class >= quantile].index
+
+    # Create a boolean mask to filter rows with 'class' equal to 1 on outlier days
+    bool_mask = (train_set.index.get_level_values('date').isin(outliers_days)) & (train_set['class'] == 1)
+
+    # For outlier days, sample a limited number of rows (up to the quantile threshold) to normalize the dataset
+    normal_days = train_set[bool_mask].reset_index().groupby('date').sample(quantile).set_index(train_set.index.names)
+
+    # Concatenate the filtered dataset with the sampled normal days and sort by index
+    train_set = pd.concat([train_set[~bool_mask], normal_days]).sort_index()
+
+    return train_set

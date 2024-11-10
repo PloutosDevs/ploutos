@@ -12,7 +12,7 @@ def get_sup_res_levels(candles_df, dev=0.05):
 
     res_list = []
     levels_prices = []
-    suppor_list = []
+    support_list = []
 
     for i in range(len(candles_df) - 2):
 
@@ -29,7 +29,9 @@ def get_sup_res_levels(candles_df, dev=0.05):
             cond4_ = candles_df['Low'].iloc[i - 1] < candles_df['Low'].iloc[i - 2]
 
             if (cond1 and cond2 and cond3 and cond4):
+
                 is_exist = False
+
                 for k in levels_prices:
                     if abs(candles_df['High'].iloc[i] / k - 1) <= dev:
                         is_exist = True
@@ -39,16 +41,18 @@ def get_sup_res_levels(candles_df, dev=0.05):
                     levels_prices.append(candles_df['High'].iloc[i])
 
             if (cond1_ and cond2_ and cond3_ and cond4_):
+
                 is_exist = False
+
                 for k in levels_prices:
                     if abs(candles_df['Low'].iloc[i] / k - 1) <= dev:
                         is_exist = True
                         break
                 if not is_exist:
-                    suppor_list.append(candles_df['Low'].iloc[i])
+                    support_list.append(candles_df['Low'].iloc[i])
                     levels_prices.append(candles_df['Low'].iloc[i])
 
-    return res_list, suppor_list
+    return res_list, support_list
 
 
 def get_breakdown_and_bounce_levels(candles_df, dev=0.05, window=90):
@@ -109,5 +113,7 @@ def get_breakdown_and_bounce_levels(candles_df, dev=0.05, window=90):
 
             if bounce:
                 candles_df.loc[ind_0, "bn_res"] = 1
+
+    candles_df = candles_df.fillna(0)
 
     return candles_df

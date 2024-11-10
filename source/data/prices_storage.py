@@ -58,10 +58,13 @@ class PricesStorage:
             if self.end_dttm and start_dttm > self.start_dttm:
                 return
 
+            new_tickers = self._new_tickers
+            self._new_tickers = {}
+
             new_candles = pd.DataFrame({}, columns=['Open', 'High', 'Low', 'Close', 'Volume', 'Symbol'])
             new_candles.index.name = 'Time'
 
-            for source, tickers in self._new_tickers.items():
+            for source, tickers in new_tickers.items():
 
                 existed_tickers = self.tickers.get(source)
 
@@ -80,7 +83,7 @@ class PricesStorage:
                         tickers,
                         (
                             start_dttm.strftime("%Y-%m-%d %H:%M:%S.%f")
-                            if tickers not in self._new_tickers.get(source, [])
+                            if tickers not in new_tickers.get(source, [])
                             else self.start_dttm.strftime("%Y-%m-%d %H:%M:%S.%f")
                         ),
                         end_time=self.end_dttm.strftime("%Y-%m-%d %H:%M:%S.%f") if self.end_dttm else None,
@@ -94,8 +97,6 @@ class PricesStorage:
             self.candles = self.candles.drop(start_dttm) if not self.candles.empty else self.candles
 
             self.candles = pd.concat([self.candles, new_candles]) if not self.candles.empty else new_candles
-
-            self._new_tickers = {}
 
             print(self.update_every)
 

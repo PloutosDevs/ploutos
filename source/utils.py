@@ -71,7 +71,7 @@ def drop_highly_corr_features(df, rate=0.95):
     print("before_drop: ", len(df.columns))
 
     # Create correlation matrix
-    corr_matrix = df.corr().abs()
+    corr_matrix = df.loc[:, ~df.apply(lambda x: x.dtype).astype(str).isin(['object'])].corr().abs()
 
     # Select upper triangle of correlation matrix
     upper = corr_matrix.where(

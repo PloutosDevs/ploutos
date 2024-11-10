@@ -20,7 +20,8 @@ from source.feature_engeneering.dominance import calculate_dominance
 from source.feature_engeneering.fibonacci_level import calculate_fibonacci_levels
 from source.feature_engeneering.volatility_functions import calculate_traling_atr
 from source.feature_engeneering.sup_and_res_levels import get_breakdown_and_bounce_levels
-from source.feature_engeneering.candles_patterns import get_finish_abnormal_moves
+from source.feature_engeneering.candles_patterns import get_finish_abnormal_moves, get_candle_patterns
+from source.feature_engeneering.time_series_features import get_time_series_features
 
 
 def create_lag_features(data, column_names, lag=1):
