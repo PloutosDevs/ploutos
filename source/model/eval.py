@@ -90,11 +90,11 @@ def eval_model(
 
 def load_model_from_path(model_name: str):
 
-    model_path = os.path.join(config.MODELS_PATH, model_name)
+    model_path = os.path.join(config.PROD_MODEL_PATH, model_name)
 
     # load config
     with open(os.path.join(model_path, 'exp_config.json')) as json_file:
-            enp_config = json.load(json_file)
+        enp_config = json.load(json_file)
             
     # Load model
     model = load(os.path.join(model_path, "model.joblib"))
