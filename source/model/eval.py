@@ -11,8 +11,7 @@ import pandas as pd
 def eval_model(
         valuation_date: pd.Timestamp = pd.Timestamp.today(tz=config.DEFAULT_TZ).normalize(),
         candles_period: int = 90,
-        best_symbols_offset: int = 50,
-        model_name: str = config.PROD_MODEL
+        best_symbols_offset: int = 50
 ):
     """
 
@@ -41,7 +40,7 @@ def eval_model(
 
     print('Start getting model')
     # Load model
-    model, experiment_config = load_model_from_path(model_name=model_name)
+    model, experiment_config = load_model_from_path()
     print('Model has been loaded')
 
     # Generate features
@@ -88,9 +87,9 @@ def eval_model(
     return plots_buffer, best_symbols.Symbol.values.tolist()
 
 
-def load_model_from_path(model_name: str):
+def load_model_from_path():
 
-    model_path = os.path.join(config.PROD_MODEL_PATH, model_name)
+    model_path = config.PROD_MODEL_PATH
 
     # load config
     with open(os.path.join(model_path, 'exp_config.json')) as json_file:
