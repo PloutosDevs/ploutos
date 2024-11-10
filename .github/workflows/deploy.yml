@@ -51,5 +51,11 @@ jobs:
             export TELEGRAM_BOT_TOKEN_TEST=${{ secrets.TELEGRAM_BOT_TOKEN_TEST }}
             echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             cd /home/${{ secrets.REMOTE_USER }}/app
+
+            # Stop and remove old containers and images
             docker-compose down
-            docker-compose up -d --build
+            docker container prune -f
+            docker image prune -f
+            
+            # Deploy new containers
+            docker-compose up -d --build --force-recreate --remove-orphans
