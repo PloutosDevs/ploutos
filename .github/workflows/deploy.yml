@@ -34,7 +34,6 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "."
           target: "/home/${{ secrets.REMOTE_USER }}/app"
 
       - name: Deploy with Docker Compose
@@ -58,4 +57,4 @@ jobs:
             docker image prune -f
             
             # Deploy new containers
-            docker-compose up -d --build --force-recreate --remove-orphans
+            docker-compose up -d --build --force-recreate --no-cache --remove-orphans
