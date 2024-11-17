@@ -34,6 +34,7 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./" 
           target: "/home/${{ secrets.REMOTE_USER }}/app"
 
       - name: Deploy with Docker Compose
