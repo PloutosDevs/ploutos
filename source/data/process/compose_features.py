@@ -1,6 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
+import sys
 
 
 from source.utils import normalize_prices
@@ -62,7 +63,7 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
 
     upd_data = []
 
-    for symbol in tqdm(data["Symbol"].unique()):
+    for symbol in tqdm(data["Symbol"].unique(), file=sys.stdout):
         
         # Get sample of prices by ticker
         sample = data[data["Symbol"] == symbol].copy()
