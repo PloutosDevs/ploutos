@@ -7,6 +7,7 @@ import datetime
 from copy import deepcopy
 import json
 import os
+import sys
 
 from sklearn.model_selection import KFold, GridSearchCV
 from sklearn.metrics import (
@@ -37,7 +38,7 @@ def generate_data_set(data: pd.DataFrame, strategy_config: dict, drop_bad_values
 
     symbols = data["Symbol"].unique()
 
-    for symbol in tqdm(symbols):
+    for symbol in tqdm(symbols, file=sys.stdout, dynamic_ncols=False, ascii=True):
 
         # Get sample of prices by ticker
         sample = data[data["Symbol"] == symbol].copy()
