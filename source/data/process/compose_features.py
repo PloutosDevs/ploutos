@@ -63,7 +63,7 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
 
     upd_data = []
 
-    for symbol in tqdm(data["Symbol"].unique(), file=sys.stdout):
+    for symbol in tqdm(data["Symbol"].unique(), file=sys.stdout, dynamic_ncols=False, ascii=True):
         
         # Get sample of prices by ticker
         sample = data[data["Symbol"] == symbol].copy()
@@ -103,7 +103,7 @@ def add_features(data: pd.DataFrame, exp_config) -> pd.DataFrame:
     data_set = []
 
     # Calculate lags
-    for symbol in tqdm(upd_data["Symbol"].unique()):
+    for symbol in tqdm(upd_data["Symbol"].unique(),file=sys.stdout, dynamic_ncols=False, ascii=True):
 
         sample = upd_data[upd_data["Symbol"] == symbol]
 

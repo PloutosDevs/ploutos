@@ -105,7 +105,7 @@ def compose_binance_candles_df(
 
     results_df = pd.DataFrame(columns=["Time", "Open", "High", "Low", "Close", "Volume", "Symbol"]).set_index("Time")
     
-    for symbol in tqdm(symbols, file=sys.stdout):
+    for symbol in tqdm(symbols, file=sys.stdout, dynamic_ncols=False, ascii=True):
 
         try:
             df = get_candles_spot_binance(symbol, interval, start_time=start_time, end_time=end_time,
