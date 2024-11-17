@@ -23,10 +23,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.CR_PAT }}
 
-      - name: Build and push Docker image
-        run: |
-          docker build -t ghcr.io/ploutosdevs/ploutos:latest .
-          docker push ghcr.io/ploutosdevs/ploutos:latest
+      # - name: Build and push Docker image
+      #   run: |
+      #     docker build -t ghcr.io/ploutosdevs/ploutos:latest .
+      #     docker push ghcr.io/ploutosdevs/ploutos:latest
       
       - name: Transfer files to Yandex Cloud VM
         uses: appleboy/scp-action@v0.1.6

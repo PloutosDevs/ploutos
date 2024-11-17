@@ -4,6 +4,7 @@ import numpy as np
 from time import sleep
 from tqdm import tqdm
 import config
+import sys
 
 from source.utils import get_time_slide_window
 
@@ -104,7 +105,7 @@ def compose_binance_candles_df(
 
     results_df = pd.DataFrame(columns=["Time", "Open", "High", "Low", "Close", "Volume", "Symbol"]).set_index("Time")
     
-    for symbol in tqdm(symbols):
+    for symbol in tqdm(symbols, file=sys.stdout):
 
         try:
             df = get_candles_spot_binance(symbol, interval, start_time=start_time, end_time=end_time,
