@@ -161,3 +161,6 @@ cython_debug/
 /data/models/
 /data/prices/
 secrets.json
+
+*.DS_Store
+.DS_Store

@@ -1,0 +1,47 @@
+[project]
+name = "ploutos"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "German",email = "g.demyanyuk@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "pandas (==2.1.1)",
+    "numpy (==1.23.2)",
+    "requests (==2.27.1)",
+    "matplotlib (==3.8.4)",
+    "scikit-learn (==1.3.1)",
+    "tqdm (==4.66.1)",
+    "xgboost (==2.0.0)",
+    "joblib (==1.3.2)",
+    "python-telegram-bot[job-queue] (==20.7)",
+    "seaborn (==0.13.2)",
+    "plotly (==5.22.0)",
+    "python-dotenv (==1.0.1)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (==24.10.0)",
+    "ruff (==0.6.9)"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Keep defaults minimal; add rules later as you like.
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
